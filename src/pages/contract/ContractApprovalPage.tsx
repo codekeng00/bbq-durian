@@ -41,7 +41,7 @@ export default function ContractApprovalPage() {
     return (
       <main className="contract-shell">
         <header className="contract-brand">DealMaker</header>
-        <p style={{ padding: "2rem" }}>
+        <p className="page-message">
           Deal not found. <Link to="/active-pipelines-business">Back to pipelines</Link>
         </p>
       </main>
@@ -87,7 +87,7 @@ export default function ContractApprovalPage() {
         <div className="contract-stats">
           <span>
             <small>TOTAL VALUE</small>
-            <strong style={{ color: "#0053cd" }}>${(deal.extracted.value ?? 0).toLocaleString()}</strong>
+            <strong className="stat-value-blue">${(deal.extracted.value ?? 0).toLocaleString()}</strong>
           </span>
           <span>
             <small>AI RISK</small>
@@ -123,9 +123,9 @@ export default function ContractApprovalPage() {
             <div className="agent-card">
               Evaluation Agent
               <strong>Risk level: {riskScore.toUpperCase()}</strong>
-              <ul style={{ margin: "8px 0 0", paddingLeft: "18px" }}>
+              <ul className="compliance-notes">
                 {complianceNotes.map((note, i) => (
-                  <li key={i} style={{ marginBottom: "4px" }}>{note}</li>
+                  <li key={i} className="compliance-note">{note}</li>
                 ))}
               </ul>
             </div>
@@ -138,7 +138,6 @@ export default function ContractApprovalPage() {
                 type="button"
                 disabled={evaluating}
                 onClick={handleApprove}
-                style={{ textAlign: "center" }}
               >
                 Approve &amp; Generate
               </button>
@@ -147,14 +146,14 @@ export default function ContractApprovalPage() {
               </button>
             </div>
           ) : (
-            <div className="approval-actions" style={{ flexDirection: "column", gap: "8px" }}>
-              <strong style={{ display: "block", marginBottom: "4px" }}>Select a reason:</strong>
+            <div className="approval-actions approval-actions-column">
+              <strong className="reject-heading">Select a reason:</strong>
               {REJECT_REASONS.map((reason) => (
                 <button key={reason} type="button" onClick={() => handleReject(reason)}>
                   {reason}
                 </button>
               ))}
-              <button type="button" onClick={() => setShowReject(false)} style={{ color: "#67748a" }}>
+              <button type="button" onClick={() => setShowReject(false)} className="link-button">
                 Cancel
               </button>
             </div>

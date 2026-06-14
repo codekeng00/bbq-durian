@@ -190,4 +190,15 @@
   .pipeline-card {
     overflow-x: visible;
   }
+
+  /* Approval summary stats: stack instead of hide */
+  .contract-stats {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .contract-summary {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
 }
