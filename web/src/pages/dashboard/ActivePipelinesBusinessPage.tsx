@@ -1,66 +1,26 @@
+import { useNavigate } from "react-router-dom";
 import AppSidebar from "../../components/AppSidebar";
-import DashboardSidebar from "../../components/DashboardSidebar";
 import EmptyPipelineState from "../../components/EmptyPipelineState";
+import { useDemoData } from "../../hooks/useDemoData";
 
-type Pipeline = {
-  client: string;
-  description: string;
-  risk: "low" | "medium" | "high";
-  riskLabel: string;
-  value: string;
-  status: string;
-  statusClassName: string;
-};
+export default function ActivePipelinesBusinessPage() {
+  const navigate = useNavigate();
+  const { deals } = useDemoData();
 
-const defaultPipelines: Pipeline[] = [
-  {
-    client: "Acme Corp",
-    description: "Enterprise SaaS Agreement",
-    risk: "low",
-    riskLabel: "Low",
-    value: "$450,000",
-    status: "Ready for Analyzing",
-    statusClassName: "ready",
-  },
-  {
-    client: "Global Tech Inc",
-    description: "Infrastructure Expansion",
-    risk: "high",
-    riskLabel: "High",
-    value: "$1,200,000",
-    status: "Analyzing",
-    statusClassName: "analysis",
-  },
-  {
-    client: "Nebula Systems",
-    description: "Security Audit Service",
-    risk: "medium",
-    riskLabel: "Medium",
-    value: "$120,000",
-    status: "Reviewing",
-    statusClassName: "",
-  },
-];
+  const pending = deals.filter((d) => d.status === "pending_business_review");
+  const history = deals.filter((d) => d.status === "approved" || d.status === "rejected");
 
-export default function ActivePipelinesBusinessPage({
-  pipelines = defaultPipelines,
-}: {
-  pipelines?: Pipeline[];
-}) {
-  if (pipelines.length === 0) {
+  if (pending.length === 0 && history.length === 0) {
     return (
-      <div className="dashboard-shell">
-        <DashboardSidebar brandTo="/active-pipelines-business-empty" />
-        <div className="main-area">
-          <header className="page-header">
-            <h1>Welcome back, Business Team</h1>
+      <>
+        <AppSidebar brandTo="/active-pipelines-business" />
+        <main className="app-main pipeline-main">
+          <header className="pipeline-heading">
+            <h1>Welcome back, Bob</h1>
           </header>
-          <main className="content-canvas">
-            <div className="page-spacer" aria-hidden="true"></div>
-            <EmptyPipelineState titleId="business-empty-title" />
-          </main>
-        </div>
-      </div>
+          <EmptyPipelineState titleId="business-empty-title" />
+        </main>
+      </>
     );
   }
 
@@ -69,45 +29,77 @@ export default function ActivePipelinesBusinessPage({
       <AppSidebar brandTo="/active-pipelines-business" />
       <main className="app-main pipeline-main">
         <header className="pipeline-heading">
-          <h1>Welcome back, Business Team</h1>
-          <p className="review-notice">3 contracts require compliance review</p>
+          <h1>Welcome back, Bob</h1>
+          <p className="review-notice">{pending.length} proposal{pending.length === 1 ? "" : "s"} awaiting review</p>
         </header>
+
         <section className="pipeline-card">
-          <h2>Active Pipelines</h2>
-          <table className="pipeline-table">
-            <thead>
-              <tr>
-                <th style={{ width: "28%" }}>Client Name</th>
-                <th style={{ width: "17%" }}>AI Risk Score</th>
-                <th style={{ width: "14%" }}>Value</th>
-                <th>Status</th>
-                <th style={{ width: "9%" }}>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {pipelines.map((pipeline) => (
-                <tr key={pipeline.client}>
-                  <td>
-                    <strong>{pipeline.client}</strong>
-                    <small>{pipeline.description}</small>
-                  </td>
-                  <td>
-                    <span className={`risk ${pipeline.risk}`}>{pipeline.riskLabel}</span>
-                  </td>
-                  <td>{pipeline.value}</td>
-                  <td>
-                    <span className={`status ${pipeline.statusClassName}`.trim()}>
-                      {pipeline.status}
-                    </span>
-                  </td>
-                  <td>
-                    <span className="more">⋮</span>
-                  </td>
+          <h2>Pending Review</h2>
+          {pending.length === 0 ? (
+            <p style={{ color: "#67748a" }}>No proposals awaiting review.</p>
+          ) : (
+            <table className="pipeline-table">
+              <thead>
+                <tr>
+                  <th style={{ width: "36%" }}>Client Name</th>
+                  <th style={{ width: "20%" }}>Value</th>
+                  <th>Subject</th>
+                  <th style={{ width: "12%" }}>Action</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {pending.map((deal) => (
+                  <tr
+                    key={deal.id}
+                    style={{ cursor: "pointer" }}
+                    onClick={() => navigate(`/contract-approval?dealId=${deal.id}`)}
+                  >
+                    <td>
+                      <strong>{deal.extracted.clientName ?? "Untitled Client"}</strong>
+                    </td>
+                    <td>${(deal.extracted.value ?? 0).toLocaleString()}</td>
+                    <td>
+                      <small>{deal.email?.subject ?? ""}</small>
+                    </td>
+                    <td>
+                      <span className="more">⋮</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </section>
+
+        {history.length > 0 && (
+          <section className="pipeline-card" style={{ marginTop: "16px" }}>
+            <h2>History</h2>
+            <table className="pipeline-table">
+              <thead>
+                <tr>
+                  <th style={{ width: "36%" }}>Client Name</th>
+                  <th style={{ width: "20%" }}>Value</th>
+                  <th>Outcome</th>
+                </tr>
+              </thead>
+              <tbody>
+                {history.map((deal) => (
+                  <tr key={deal.id}>
+                    <td>
+                      <strong>{deal.extracted.clientName ?? "Untitled Client"}</strong>
+                    </td>
+                    <td>${(deal.extracted.value ?? 0).toLocaleString()}</td>
+                    <td>
+                      <span className={`status ${deal.status === "approved" ? "ready" : "high"}`}>
+                        {deal.status === "approved" ? "Approved" : "Rejected"}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </section>
+        )}
         <div className="pipeline-rule"></div>
       </main>
     </>
