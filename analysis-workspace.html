@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DealMaker | Analysis Workspace</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="screens.css">
+</head>
+<body>
+  <main class="workspace" data-node-id="14:389">
+    <section class="workspace-left">
+      <header class="workspace-brand"><strong>DealMaker</strong><a class="workspace-back" href="active-pipelines-susu.html"><img src="assets/workspace-back.svg" alt="">back</a></header>
+      <div class="workspace-intro"><h1>Analysis Workspace</h1><p>Review conversation data and AI insights.</p></div>
+      <section class="upload-card">
+        <img src="assets/workspace-upload.svg" alt="">
+        <div><h2>Upload conversation</h2><p>Supports .txt files only</p></div>
+        <button class="browse-button"><img src="assets/workspace-plus.svg" alt="">Browse Files</button>
+      </section>
+      <h2 class="queue-title"><img src="assets/workspace-queue.svg" alt="">QUEUE</h2>
+      <div class="queue-list">
+        <article class="queue-item"><div class="queue-file"><img src="assets/workspace-processing.svg" alt=""><div><span>meeting_notes.txt</span><small>65% Processed</small></div></div><span class="progress"><i></i></span></article>
+        <article class="queue-item"><div class="queue-file"><img src="assets/workspace-document.svg" alt=""><div><span>client_a_brief.txt</span><small class="ready">Ready</small></div></div><img src="assets/workspace-ready.svg" width="12" alt=""></article>
+      </div>
+    </section>
+    <section class="workspace-chat">
+      <header class="assistant-header"><img src="assets/workspace-assistant.svg" alt=""><div><strong>AI Assistant</strong><small>Analyzing context...</small></div></header>
+      <div class="chat-feed">
+        <article><div class="ai-bubble">I've started scanning client_a_brief.txt. I'm focusing on budget mentions and decision-maker roles. <span style="color:#0053cd">@ExtractionAgent</span>, please begin pulling the specific line items.</div><p class="agent-meta"><b>ANALYSIS AGENT</b> &nbsp;• Just now</p></article>
+        <section class="pipeline-box"><h3>CURRENT PIPELINE</h3><div class="pipeline-step"><span><img src="assets/workspace-complete.svg" alt="">Text Extraction</span><small>Extraction Agent • Completed</small></div><div class="pipeline-step in-progress"><span><img src="assets/workspace-progress.svg" alt="">Intent Mapping</span><small>Analysis Agent • In Progress</small></div><div class="pipeline-step pending"><span><img src="assets/workspace-pending.svg" alt="">Strategy Drafting</span><small>Strategy Agent • Pending</small></div></section>
+        <article><div class="ai-bubble">The text mentions "Project Zenith" multiple times. <span style="color:#0053cd">@AnalysisAgent</span>, should we prioritize this as the primary account name?<div class="quick-actions"><button>Yes, prioritize</button><button>No, it's a sub-task</button></div></div><p class="agent-meta"><b class="purple">ORCHESTRATOR AGENT</b> &nbsp;• Just now</p></article>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
