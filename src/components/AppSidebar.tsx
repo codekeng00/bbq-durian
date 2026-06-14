@@ -29,15 +29,11 @@ export default function AppSidebar({ brandTo, className = "app-sidebar" }: AppSi
           <small>AI Intelligence</small>
         </span>
       </Link>
-      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-        <button className="app-logout" type="button" onClick={handleLogout} style={{ background: "none", border: "none", cursor: "pointer", textAlign: "left" }}>
+      <div className="sidebar-buttons">
+        <button className="app-logout" type="button" onClick={handleLogout}>
           <img src="/assets/dashboard-logout.svg" alt="" /> Logout
         </button>
-        <button
-          type="button"
-          onClick={handleReset}
-          style={{ background: "none", border: "none", cursor: "pointer", color: "#ba1a1a", fontSize: "0.85rem", textAlign: "left" }}
-        >
+        <button type="button" onClick={handleReset} className="reset-button">
           ↺ Reset Demo Data
         </button>
       </div>

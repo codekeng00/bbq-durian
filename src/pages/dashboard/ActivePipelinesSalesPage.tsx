@@ -66,18 +66,18 @@ export default function ActivePipelinesSalesPage() {
             </thead>
             <tbody>
               {deals.map((deal) => (
-                <tr key={deal.id} style={{ cursor: "pointer" }} onClick={() => openDeal(deal.id, deal.status)}>
-                  <td>
+                <tr key={deal.id} className="row-clickable" onClick={() => openDeal(deal.id, deal.status)}>
+                  <td data-label="Client">
                     <strong>{deal.extracted.clientName ?? "Untitled Client"}</strong>
                     <small>{deal.extracted.description ?? ""}</small>
                   </td>
-                  <td>${(deal.extracted.value ?? 0).toLocaleString()}</td>
-                  <td>
+                  <td data-label="Value">${(deal.extracted.value ?? 0).toLocaleString()}</td>
+                  <td data-label="Status">
                     <span className={`status ${STATUS_CLASS[deal.status]}`.trim()}>
                       {STATUS_LABEL[deal.status]}
                     </span>
                   </td>
-                  <td>
+                  <td data-label="">
                     <span className="more">⋮</span>
                   </td>
                 </tr>
@@ -86,12 +86,7 @@ export default function ActivePipelinesSalesPage() {
           </table>
         </section>
         <div className="pipeline-rule"></div>
-        <button
-          className="floating-new"
-          type="button"
-          onClick={() => navigate("/analysis-workspace")}
-          style={{ border: "none", cursor: "pointer" }}
-        >
+        <button className="floating-new" type="button" onClick={() => navigate("/analysis-workspace")}>
           ＋ New
         </button>
       </main>

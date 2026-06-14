@@ -36,7 +36,7 @@ export default function ActivePipelinesBusinessPage() {
         <section className="pipeline-card">
           <h2>Pending Review</h2>
           {pending.length === 0 ? (
-            <p style={{ color: "#67748a" }}>No proposals awaiting review.</p>
+            <p className="muted-note">No proposals awaiting review.</p>
           ) : (
             <table className="pipeline-table">
               <thead>
@@ -51,17 +51,17 @@ export default function ActivePipelinesBusinessPage() {
                 {pending.map((deal) => (
                   <tr
                     key={deal.id}
-                    style={{ cursor: "pointer" }}
+                    className="row-clickable"
                     onClick={() => navigate(`/contract-approval?dealId=${deal.id}`)}
                   >
-                    <td>
+                    <td data-label="Client">
                       <strong>{deal.extracted.clientName ?? "Untitled Client"}</strong>
                     </td>
-                    <td>${(deal.extracted.value ?? 0).toLocaleString()}</td>
-                    <td>
+                    <td data-label="Value">${(deal.extracted.value ?? 0).toLocaleString()}</td>
+                    <td data-label="Subject">
                       <small>{deal.email?.subject ?? ""}</small>
                     </td>
-                    <td>
+                    <td data-label="">
                       <span className="more">⋮</span>
                     </td>
                   </tr>
@@ -72,7 +72,7 @@ export default function ActivePipelinesBusinessPage() {
         </section>
 
         {history.length > 0 && (
-          <section className="pipeline-card" style={{ marginTop: "16px" }}>
+          <section className="pipeline-card pipeline-card-stacked">
             <h2>History</h2>
             <table className="pipeline-table">
               <thead>
@@ -85,11 +85,11 @@ export default function ActivePipelinesBusinessPage() {
               <tbody>
                 {history.map((deal) => (
                   <tr key={deal.id}>
-                    <td>
+                    <td data-label="Client">
                       <strong>{deal.extracted.clientName ?? "Untitled Client"}</strong>
                     </td>
-                    <td>${(deal.extracted.value ?? 0).toLocaleString()}</td>
-                    <td>
+                    <td data-label="Value">${(deal.extracted.value ?? 0).toLocaleString()}</td>
+                    <td data-label="Outcome">
                       <span className={`status ${deal.status === "approved" ? "ready" : "high"}`}>
                         {deal.status === "approved" ? "Approved" : "Rejected"}
                       </span>
