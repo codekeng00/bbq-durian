@@ -469,20 +469,3 @@ h1, h2, h3, h4, p { margin-top: 0; }
 .report-details { margin-top: 32px; }
 .report-details h3 { color: var(--muted); font-size: 12px; letter-spacing: 1px; }
 .report-details dl div { display: flex; justify-content: space-between; margin: 14px 0; }
-
-@media (max-width: 850px) {
-  .app-sidebar { position: static; flex-direction: row; width: 100%; min-height: auto; border-right: 0; border-bottom: 1px solid var(--border); }
-  .app-brand { padding: 14px 18px; }
-  .app-logout { padding: 20px; border-top: 0; }
-  .app-main { margin-left: 0; }
-  .pipeline-main { min-height: auto; }
-  .pipeline-card { overflow-x: auto; }
-  .pipeline-table { min-width: 900px; }
-  .workspace, .email-chat-layout, .review-shell, .contract-grid, .received-grid, .report-grid { grid-template-columns: 1fr; }
-  .workspace-chat, .report-side { border-left: 0; border-top: 1px solid var(--border); }
-  .review-side { flex-direction: row; border-right: 0; border-bottom: 1px solid var(--border); }
-  .review-content { padding: 36px 20px; }
-  .contract-stats { display: none; }
-  .document-paper { width: 92%; }
-  .report-grid { min-height: auto; }
-}

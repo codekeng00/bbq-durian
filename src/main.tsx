@@ -7,6 +7,7 @@ import "./index.css";
 import "./styles/styles.css";
 import "./styles/screens.css";
 import "./styles/login.css";
+import "./styles/responsive.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
