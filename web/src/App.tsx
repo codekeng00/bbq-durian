@@ -1,16 +1,16 @@
 import { Routes, Route } from "react-router-dom";
-import LoginPage from "./pages/LoginPage";
-import DashboardPage from "./pages/DashboardPage";
-import ActivePipelinesKengEmptyPage from "./pages/ActivePipelinesKengEmptyPage";
-import ActivePipelinesKengPage from "./pages/ActivePipelinesKengPage";
-import ActivePipelinesSusuPage from "./pages/ActivePipelinesSusuPage";
-import AnalysisWorkspacePage from "./pages/AnalysisWorkspacePage";
-import AnalysisChatPage from "./pages/AnalysisChatPage";
-import ClientEmailReviewPage from "./pages/ClientEmailReviewPage";
-import ComplianceReportPage from "./pages/ComplianceReportPage";
-import ContractApprovalPage from "./pages/ContractApprovalPage";
-import ContractBlockedPage from "./pages/ContractBlockedPage";
-import ContractReceivedPage from "./pages/ContractReceivedPage";
+import LoginPage from "./pages/auth/LoginPage";
+import DashboardPage from "./pages/dashboard/DashboardPage";
+import ActivePipelinesKengEmptyPage from "./pages/dashboard/ActivePipelinesKengEmptyPage";
+import ActivePipelinesKengPage from "./pages/dashboard/ActivePipelinesKengPage";
+import ActivePipelinesSusuPage from "./pages/dashboard/ActivePipelinesSusuPage";
+import AnalysisWorkspacePage from "./pages/analysis/AnalysisWorkspacePage";
+import AnalysisChatPage from "./pages/analysis/AnalysisChatPage";
+import ClientEmailReviewPage from "./pages/email/ClientEmailReviewPage";
+import ComplianceReportPage from "./pages/contract/ComplianceReportPage";
+import ContractApprovalPage from "./pages/contract/ContractApprovalPage";
+import ContractBlockedPage from "./pages/contract/ContractBlockedPage";
+import ContractReceivedPage from "./pages/contract/ContractReceivedPage";
 
 export default function App() {
   return (

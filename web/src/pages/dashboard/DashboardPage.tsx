@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import DashboardSidebar from "../components/DashboardSidebar";
-import EmptyPipelineState from "../components/EmptyPipelineState";
+import DashboardSidebar from "../../components/DashboardSidebar";
+import EmptyPipelineState from "../../components/EmptyPipelineState";
 
 export default function DashboardPage() {
   const navigate = useNavigate();

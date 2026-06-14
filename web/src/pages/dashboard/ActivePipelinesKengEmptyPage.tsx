@@ -1,5 +1,5 @@
-import DashboardSidebar from "../components/DashboardSidebar";
-import EmptyPipelineState from "../components/EmptyPipelineState";
+import DashboardSidebar from "../../components/DashboardSidebar";
+import EmptyPipelineState from "../../components/EmptyPipelineState";
 
 export default function ActivePipelinesKengEmptyPage() {
   return (
