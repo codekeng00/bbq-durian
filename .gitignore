@@ -1,3 +1,32 @@
+# Dependencies / build
+node_modules
+dist
+dist-ssr
+*.local
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Editor / OS
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Claude local preview config
+.claude/launch.json
+
+# Claude design drafts — kept local, never committed
 docs/
 *.md
-!web/README.md
+!README.md
