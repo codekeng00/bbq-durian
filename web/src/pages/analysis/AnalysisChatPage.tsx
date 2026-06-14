@@ -1,83 +1,100 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useDemoData } from "../../hooks/useDemoData";
 
 export default function AnalysisChatPage() {
+  const [params] = useSearchParams();
+  const navigate = useNavigate();
+  const { getDeal, updateDealEmail, submitToBusiness } = useDemoData();
+
+  const dealId = params.get("dealId") ?? "";
+  const deal = getDeal(dealId);
+
+  const [subject, setSubject] = useState(deal?.email?.subject ?? "");
+  const [body, setBody] = useState(deal?.email?.body ?? "");
+
+  if (!deal || !deal.email) {
+    return (
+      <main className="email-chat-layout">
+        <section className="email-editor">
+          <header className="mini-brand">DealMaker</header>
+          <p style={{ padding: "2rem" }}>
+            Deal not found. <Link to="/active-pipelines-sales">Back to pipelines</Link>
+          </p>
+        </section>
+      </main>
+    );
+  }
+
+  function handleSubmit() {
+    updateDealEmail(deal!.id, { to: deal!.email!.to, subject, body });
+    submitToBusiness(deal!.id);
+    navigate("/active-pipelines-sales");
+  }
+
   return (
     <main className="email-chat-layout">
       <section className="email-editor">
         <header className="mini-brand">DealMaker</header>
+
+        {deal.status === "rejected" && deal.rejectReason && (
+          <div
+            style={{
+              margin: "16px 24px 0",
+              padding: "12px 16px",
+              background: "#fff0ef",
+              border: "1px solid #ffd5d2",
+              borderRadius: "8px",
+              color: "#ba1a1a",
+            }}
+          >
+            <strong>Returned by Business:</strong> {deal.rejectReason}. Please revise and resubmit.
+          </div>
+        )}
+
         <article className="email-paper">
           <header className="email-head">
             <div className="email-head-row">
               <div>
                 <h1>
-                  Sarah Johnson{" "}
+                  {deal.extracted.clientName ?? "Client"}{" "}
                   <span className="pill" style={{ color: "#712ae2" }}>
                     CLIENT
                   </span>
                 </h1>
-                <p>Acme Corp • Senior Procurement Manager</p>
+                <p>{deal.extracted.description ?? ""}</p>
               </div>
               <span className="pill" style={{ color: "#ba1a1a", background: "#fff0ef" }}>
-                Pending Review
+                {deal.status === "rejected" ? "Rejected" : "Draft"}
               </span>
             </div>
           </header>
           <div className="email-body">
             <p>
-              <strong>To:</strong> sarah.johnson@acme.com
+              <strong>To:</strong> {deal.email.to}
             </p>
             <p>
-              <strong>Subject:</strong> Streamlining Acme's Supply Chain: Q4 Strategic Proposal
+              <strong>Subject:</strong>
             </p>
-            <p>Dear Sarah,</p>
-            <p>
-              Following our conversation regarding Acme Corp's recent expansion, I've tailored a
-              preliminary proposal for <a>automated Q4 inventory forecasting</a> designed to
-              accelerate your regional operations.
-            </p>
-            <p>
-              Based on our <a>Salesforce's Cloud Proposal</a>, we estimate operational latency can
-              be reduced by 32% while maintaining cross-regional compliance standards.
-            </p>
-            <p>
-              I've attached the full breakdown below. Would you be available for a brief sync this
-              Thursday at 3 PM to walk through the assumptions?
-            </p>
-            <p>
-              Best regards,
-              <br />
-              Alexandra Reed
-            </p>
+            <input
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              style={{ width: "100%", padding: "8px", marginBottom: "12px", border: "1px solid #d6dee8", borderRadius: "6px" }}
+            />
+            <textarea
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              rows={14}
+              style={{ width: "100%", padding: "12px", border: "1px solid #d6dee8", borderRadius: "6px", fontFamily: "inherit" }}
+            />
           </div>
           <div className="send-row">
-            <Link className="primary-button" to="/client-email-review">
-              Send Email ↗
-            </Link>
+            <button className="primary-button" type="button" onClick={handleSubmit}>
+              {deal.status === "rejected" ? "Resubmit to Business ↗" : "Submit to Business ↗"}
+            </button>
           </div>
         </article>
       </section>
-      <aside className="chat-rail">
-        <div className="user-bubble">Can you make it sound a bit more professional and urgent?</div>
-        <div className="assistant-bubble">
-          Updated. I've emphasized the delivery date and tightened the value proposition without
-          adding pressure.
-        </div>
-        <div className="assistant-bubble">
-          I've highlighted the Salesforce Cloud Proposal. Should we keep this wording?
-        </div>
-        <div className="chat-spacer"></div>
-        <div className="chat-composer">
-          <div className="chips">
-            <span>ANALYTICS</span>
-            <span>APPROVAL</span>
-            <span>INDUSTRY INSIGHTS</span>
-          </div>
-          <div className="composer-field">
-            <textarea placeholder="Ask me to refine this email or suggest changes..."></textarea>
-            <button>↑</button>
-          </div>
-        </div>
-      </aside>
     </main>
   );
 }
