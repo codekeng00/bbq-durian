@@ -79,7 +79,11 @@ h1, h2, h3, h4, p { margin-top: 0; }
   gap: 12px;
   padding: 29px 28px;
   font-size: 12px;
+  background: none;
+  border: 0;
   border-top: 1px solid var(--border);
+  cursor: pointer;
+  text-align: left;
 }
 
 .app-logout img { width: 18px; height: 18px; }
@@ -229,6 +233,18 @@ h1, h2, h3, h4, p { margin-top: 0; }
   border: 0;
   color: #0053cd;
   cursor: pointer;
+}
+.contract-line { margin: 4px 0; }
+.dl-full { grid-column: 1 / -1; }
+.dd-ink { color: #0b1c30; }
+.sidebar-buttons { display: flex; flex-direction: column; gap: 8px; }
+.reset-button {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  color: #ba1a1a;
+  font-size: 0.85rem;
+  text-align: left;
 }
 
 .workspace {

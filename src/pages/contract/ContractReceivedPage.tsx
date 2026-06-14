@@ -12,7 +12,7 @@ export default function ContractReceivedPage() {
     return (
       <main className="received-layout">
         <header className="simple-topbar">DealMaker</header>
-        <p style={{ padding: "2rem" }}>
+        <p className="page-message">
           Contract not available. <Link to="/active-pipelines-sales">Back to pipelines</Link>
         </p>
       </main>
@@ -27,7 +27,7 @@ export default function ContractReceivedPage() {
           <header>▣ &nbsp; Service Agreement</header>
           <article className="agreement-paper">
             {deal.contractContent.split("\n").map((line, i) => (
-              <p key={i} style={{ margin: "4px 0" }}>{line || " "}</p>
+              <p key={i} className="contract-line">{line || " "}</p>
             ))}
           </article>
         </section>
@@ -42,7 +42,7 @@ export default function ContractReceivedPage() {
             </div>
             <p>The DealMaker pipeline has generated the final agreement.</p>
             <dl>
-              <div style={{ gridColumn: "1 / -1" }}>
+              <div className="dl-full">
                 <dt>CLIENT</dt>
                 <dd>{deal.extracted.clientName ?? "Client"}</dd>
               </div>
@@ -52,7 +52,7 @@ export default function ContractReceivedPage() {
               </div>
               <div>
                 <dt>TERMS</dt>
-                <dd style={{ color: "#0b1c30" }}>Net 30</dd>
+                <dd className="dd-ink">Net 30</dd>
               </div>
             </dl>
           </section>
