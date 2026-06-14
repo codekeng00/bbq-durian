@@ -26,11 +26,8 @@ export default function EmptyPipelineState({ titleId, onNew }: EmptyPipelineStat
       <div className="empty-copy">
         <h2 id={titleId}>No Active Pipelines Found</h2>
         <p>
-          Your pipeline is currently quiet. Start a new conversation
-          <br />
-          analysis or upload a sales call to see DealMaker's
-          <br />
-          intelligence in action.
+          Your pipeline is currently quiet. Start a new conversation analysis or
+          upload a sales call to see DealMaker&rsquo;s intelligence in action.
         </p>
         {onNew && (
           <div className="empty-action">
