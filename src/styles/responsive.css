@@ -141,4 +141,53 @@
   .login-footer {
     flex-wrap: wrap;
   }
+
+  /* Data tables → stacked cards */
+  .pipeline-table,
+  .pipeline-table tbody,
+  .pipeline-table tr,
+  .pipeline-table td {
+    display: block;
+    width: auto;
+  }
+  .pipeline-table thead {
+    display: none;
+  }
+  .pipeline-table {
+    min-width: 0;
+  }
+  .pipeline-table tr {
+    margin: 0 0 12px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: #fff;
+  }
+  .pipeline-table td {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 4px 0;
+    border: 0;
+    text-align: right;
+  }
+  .pipeline-table td::before {
+    content: attr(data-label);
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    text-align: left;
+  }
+  .pipeline-table td[data-label=""]::before {
+    content: none;
+  }
+  .pipeline-table td:first-child {
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+  }
+  .pipeline-card {
+    overflow-x: visible;
+  }
 }

@@ -186,7 +186,10 @@ h1, h2, h3, h4, p { margin-top: 0; }
   border: 0;
   border-radius: 12px;
   box-shadow: 0 25px 50px -12px rgb(0 0 0 / 25%);
+  cursor: pointer;
 }
+
+.row-clickable { cursor: pointer; }
 
 .workspace {
   display: grid;
