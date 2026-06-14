@@ -6,7 +6,7 @@ export default function AnalysisWorkspacePage() {
       <section className="workspace-left">
         <header className="workspace-brand">
           <strong>DealMaker</strong>
-          <Link className="workspace-back" to="/active-pipelines-susu">
+          <Link className="workspace-back" to="/active-pipelines-sales">
             <img src="/assets/workspace-back.svg" alt="" />
             back
           </Link>

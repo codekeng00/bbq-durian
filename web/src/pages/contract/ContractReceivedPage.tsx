@@ -11,7 +11,7 @@ export default function ContractReceivedPage() {
             <section>
               <h2>1. SCOPE OF SERVICES</h2>
               <p>
-                Nexus AI shall provide Global Enterprise Tech with automated pipeline integration
+                DealMaker shall provide Global Enterprise Tech with automated pipeline integration
                 services as detailed in the technical specification document. This includes
                 real-time verification, contract generation, and automated follow-up scheduling.
               </p>
@@ -27,7 +27,7 @@ export default function ContractReceivedPage() {
               <h2>3. SIGNATURES</h2>
               <div className="signatures">
                 <div className="signature">
-                  <strong>NEXUS AI REPRESENTATIVE</strong>
+                  <strong>DEALMAKER REPRESENTATIVE</strong>
                   <p>Digital Signature Applied</p>
                 </div>
                 <div className="signature">
@@ -47,7 +47,7 @@ export default function ContractReceivedPage() {
               </div>
             </div>
             <p>
-              The Nexus AI pipeline has generated the final agreement for Global Enterprise Tech.
+              The DealMaker pipeline has generated the final agreement for Global Enterprise Tech.
             </p>
             <dl>
               <div style={{ gridColumn: "1 / -1" }}>

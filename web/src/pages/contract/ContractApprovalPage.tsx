@@ -77,7 +77,7 @@ export default function ContractApprovalPage() {
             signing.
           </p>
           <div className="agent-card">
-            Nexus Assistant
+            DealMaker Assistant
             <strong>AI confidence: 94% complete</strong>
             <p>Terms, risk, and commercial items are within policy thresholds.</p>
           </div>

@@ -1,8 +1,8 @@
 import { Routes, Route } from "react-router-dom";
 import LoginPage from "./pages/auth/LoginPage";
 import DashboardPage from "./pages/dashboard/DashboardPage";
-import ActivePipelinesKengPage from "./pages/dashboard/ActivePipelinesKengPage";
-import ActivePipelinesSusuPage from "./pages/dashboard/ActivePipelinesSusuPage";
+import ActivePipelinesBusinessPage from "./pages/dashboard/ActivePipelinesBusinessPage";
+import ActivePipelinesSalesPage from "./pages/dashboard/ActivePipelinesSalesPage";
 import AnalysisWorkspacePage from "./pages/analysis/AnalysisWorkspacePage";
 import AnalysisChatPage from "./pages/analysis/AnalysisChatPage";
 import ClientEmailReviewPage from "./pages/email/ClientEmailReviewPage";
@@ -16,9 +16,12 @@ export default function App() {
     <Routes>
       <Route path="/" element={<LoginPage />} />
       <Route path="/dashboard" element={<DashboardPage />} />
-      <Route path="/active-pipelines-keng-empty" element={<ActivePipelinesKengPage pipelines={[]} />} />
-      <Route path="/active-pipelines-keng" element={<ActivePipelinesKengPage />} />
-      <Route path="/active-pipelines-susu" element={<ActivePipelinesSusuPage />} />
+      <Route
+        path="/active-pipelines-business-empty"
+        element={<ActivePipelinesBusinessPage pipelines={[]} />}
+      />
+      <Route path="/active-pipelines-business" element={<ActivePipelinesBusinessPage />} />
+      <Route path="/active-pipelines-sales" element={<ActivePipelinesSalesPage />} />
       <Route path="/analysis-workspace" element={<AnalysisWorkspacePage />} />
       <Route path="/analysis-chat" element={<AnalysisChatPage />} />
       <Route path="/client-email-review" element={<ClientEmailReviewPage />} />

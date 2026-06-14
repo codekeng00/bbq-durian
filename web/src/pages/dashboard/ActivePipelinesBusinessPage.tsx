@@ -42,7 +42,7 @@ const defaultPipelines: Pipeline[] = [
   },
 ];
 
-export default function ActivePipelinesKengPage({
+export default function ActivePipelinesBusinessPage({
   pipelines = defaultPipelines,
 }: {
   pipelines?: Pipeline[];
@@ -50,14 +50,14 @@ export default function ActivePipelinesKengPage({
   if (pipelines.length === 0) {
     return (
       <div className="dashboard-shell">
-        <DashboardSidebar brandTo="/active-pipelines-keng-empty" />
+        <DashboardSidebar brandTo="/active-pipelines-business-empty" />
         <div className="main-area">
           <header className="page-header">
-            <h1>Welcome back, Keng</h1>
+            <h1>Welcome back, Business Team</h1>
           </header>
           <main className="content-canvas">
             <div className="page-spacer" aria-hidden="true"></div>
-            <EmptyPipelineState titleId="keng-empty-title" />
+            <EmptyPipelineState titleId="business-empty-title" />
           </main>
         </div>
       </div>
@@ -66,10 +66,10 @@ export default function ActivePipelinesKengPage({
 
   return (
     <>
-      <AppSidebar brandTo="/active-pipelines-keng" />
+      <AppSidebar brandTo="/active-pipelines-business" />
       <main className="app-main pipeline-main">
         <header className="pipeline-heading">
-          <h1>Welcome back, Keng</h1>
+          <h1>Welcome back, Business Team</h1>
           <p className="review-notice">3 contracts require compliance review</p>
         </header>
         <section className="pipeline-card">

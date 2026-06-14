@@ -4,7 +4,7 @@ import AppSidebar from "../../components/AppSidebar";
 export default function ClientEmailReviewPage() {
   return (
     <main className="review-shell">
-      <AppSidebar className="review-side" brandTo="/active-pipelines-keng" />
+      <AppSidebar className="review-side" brandTo="/active-pipelines-business" />
       <section className="review-content">
         <header className="review-top">
           <div>
@@ -21,7 +21,7 @@ export default function ClientEmailReviewPage() {
               <small>FROM</small>
               <strong>Marcus Thames</strong>
               <small>TO</small>
-              <strong>Nexus Sales Team</strong>
+              <strong>DealMaker Team</strong>
             </div>
             <div>
               <small>SUBJECT</small>
@@ -31,7 +31,7 @@ export default function ClientEmailReviewPage() {
             </div>
           </header>
           <div className="review-letter">
-            <p>Dear Nexus Team,</p>
+            <p>Dear DealMaker Team,</p>
             <p>
               Thank you for the quick turnaround on the revised terms. After reviewing the latest
               draft with our legal and operations teams, we are generally aligned with the service

@@ -10,7 +10,7 @@ export default function DashboardPage() {
       <DashboardSidebar brandTo="/dashboard" />
       <div className="main-area">
         <header className="page-header">
-          <h1>Welcome back, Susu</h1>
+          <h1>Welcome back, Sales Team</h1>
         </header>
         <main className="content-canvas">
           <div className="page-spacer" aria-hidden="true"></div>

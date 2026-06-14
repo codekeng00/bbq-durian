@@ -1,13 +1,13 @@
 import { Link } from "react-router-dom";
 import AppSidebar from "../../components/AppSidebar";
 
-export default function ActivePipelinesSusuPage() {
+export default function ActivePipelinesSalesPage() {
   return (
     <>
-      <AppSidebar brandTo="/active-pipelines-susu" />
+      <AppSidebar brandTo="/active-pipelines-sales" />
       <main className="app-main pipeline-main">
         <header className="pipeline-heading">
-          <h1>Welcome back, Susu</h1>
+          <h1>Welcome back, Sales Team</h1>
           <p className="review-notice">3 contracts require compliance review</p>
         </header>
         <section className="pipeline-card">

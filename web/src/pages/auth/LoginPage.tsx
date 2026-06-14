@@ -30,7 +30,7 @@ export default function LoginPage() {
           <div className="hero-copy">
             <h1 id="hero-title">Know More. Move Faster. Sell Better.</h1>
             <p>
-              Nexus Sales synchronizes your entire revenue pipeline, from initial CRM lead intake
+              DealMaker synchronizes your entire revenue pipeline, from initial CRM lead intake
               to AI-driven proposal generation and final human verification.
             </p>
           </div>
@@ -109,7 +109,7 @@ export default function LoginPage() {
             </form>
 
             <p className="account-access">
-              New to Nexus Sales? <a href="#">Request Account Access</a>
+              New to DealMaker? <a href="#">Request Account Access</a>
             </p>
           </div>
         </section>
@@ -118,7 +118,7 @@ export default function LoginPage() {
       <footer className="login-footer">
         <span>
           <img src="/assets/agent.svg" alt="" aria-hidden="true" />
-          Powered by Nexus Sales AI Agent Orchestration
+          Powered by DealMaker AI Agent Orchestration
         </span>
         <i aria-hidden="true">|</i>
         <span>v2.4.0-Enterprise</span>

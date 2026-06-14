@@ -28,7 +28,7 @@ export default function EmptyPipelineState({ titleId, onNew }: EmptyPipelineStat
         <p>
           Your pipeline is currently quiet. Start a new conversation
           <br />
-          analysis or upload a sales call to see Nexus AI's
+          analysis or upload a sales call to see DealMaker's
           <br />
           intelligence in action.
         </p>
