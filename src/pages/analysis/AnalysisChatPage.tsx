@@ -18,7 +18,7 @@ export default function AnalysisChatPage() {
       <main className="email-chat-layout">
         <section className="email-editor">
           <header className="mini-brand">DealMaker</header>
-          <p style={{ padding: "2rem" }}>
+          <p className="page-message">
             Deal not found. <Link to="/active-pipelines-sales">Back to pipelines</Link>
           </p>
         </section>
@@ -38,16 +38,7 @@ export default function AnalysisChatPage() {
         <header className="mini-brand">DealMaker</header>
 
         {deal.status === "rejected" && deal.rejectReason && (
-          <div
-            style={{
-              margin: "16px 24px 0",
-              padding: "12px 16px",
-              background: "#fff0ef",
-              border: "1px solid #ffd5d2",
-              borderRadius: "8px",
-              color: "#ba1a1a",
-            }}
-          >
+          <div className="reject-banner">
             <strong>Returned by Business:</strong> {deal.rejectReason}. Please revise and resubmit.
           </div>
         )}
@@ -58,13 +49,13 @@ export default function AnalysisChatPage() {
               <div>
                 <h1>
                   {deal.extracted.clientName ?? "Client"}{" "}
-                  <span className="pill" style={{ color: "#712ae2" }}>
+                  <span className="pill pill-client">
                     CLIENT
                   </span>
                 </h1>
                 <p>{deal.extracted.description ?? ""}</p>
               </div>
-              <span className="pill" style={{ color: "#ba1a1a", background: "#fff0ef" }}>
+              <span className="pill pill-status">
                 {deal.status === "rejected" ? "Rejected" : "Draft"}
               </span>
             </div>
@@ -79,13 +70,13 @@ export default function AnalysisChatPage() {
             <input
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
-              style={{ width: "100%", padding: "8px", marginBottom: "12px", border: "1px solid #d6dee8", borderRadius: "6px" }}
+              className="email-input"
             />
             <textarea
               value={body}
               onChange={(e) => setBody(e.target.value)}
               rows={14}
-              style={{ width: "100%", padding: "12px", border: "1px solid #d6dee8", borderRadius: "6px", fontFamily: "inherit" }}
+              className="email-textarea"
             />
           </div>
           <div className="send-row">
