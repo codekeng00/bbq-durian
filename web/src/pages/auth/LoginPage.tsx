@@ -1,16 +1,21 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-
-type Role = "sales" | "business";
+import { DEMO_USERS } from "../../data/users";
+import { useDemoData } from "../../hooks/useDemoData";
+import type { Team } from "../../data/types";
 
 export default function LoginPage() {
-  const [role, setRole] = useState<Role>("sales");
+  const [role, setRole] = useState<Team>("sales");
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  const { login } = useDemoData();
+
+  const email = DEMO_USERS[role].email;
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    navigate("/dashboard");
+    login(role);
+    navigate(role === "sales" ? "/active-pipelines-sales" : "/active-pipelines-business");
   }
 
   return (
@@ -73,7 +78,13 @@ export default function LoginPage() {
             <form className="login-form" onSubmit={handleSubmit}>
               <label className="form-field">
                 <span>Organization Email</span>
-                <input type="email" name="email" placeholder="name@company.com" required />
+                <input
+                  type="email"
+                  name="email"
+                  value={email}
+                  readOnly
+                  placeholder="name@company.com"
+                />
               </label>
               <div className="form-field">
                 <span className="label-row">
@@ -85,8 +96,9 @@ export default function LoginPage() {
                     id="password"
                     type={showPassword ? "text" : "password"}
                     name="password"
+                    value="demo1234"
+                    readOnly
                     placeholder="••••••••"
-                    required
                   />
                   <button
                     className="visibility-toggle"
