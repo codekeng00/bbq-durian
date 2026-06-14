@@ -121,11 +121,7 @@ export default function AnalysisWorkspacePage() {
             <img src="/assets/workspace-plus.svg" alt="" />
             Browse Files
           </button>
-          <button
-            type="button"
-            onClick={loadSample}
-            style={{ marginTop: "8px", background: "none", border: "none", color: "#0053cd", cursor: "pointer" }}
-          >
+          <button type="button" onClick={loadSample} className="sample-link">
             Use sample conversation
           </button>
         </section>
@@ -200,7 +196,7 @@ export default function AnalysisWorkspacePage() {
 
           {chat.map((msg, i) => (
             <article key={i}>
-              <div className={msg.role === "agent" ? "ai-bubble" : "ai-bubble"} style={msg.role === "user" ? { background: "#eef3ff" } : undefined}>
+              <div className={msg.role === "user" ? "ai-bubble user-bubble" : "ai-bubble"}>
                 {msg.text}
               </div>
               <p className="agent-meta">

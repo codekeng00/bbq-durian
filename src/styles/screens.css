@@ -223,6 +223,13 @@ h1, h2, h3, h4, p { margin-top: 0; }
   border-radius: 6px;
   font-family: inherit;
 }
+.sample-link {
+  margin-top: 8px;
+  background: none;
+  border: 0;
+  color: #0053cd;
+  cursor: pointer;
+}
 
 .workspace {
   display: grid;
@@ -390,7 +397,7 @@ h1, h2, h3, h4, p { margin-top: 0; }
 .send-row { display: flex; justify-content: flex-end; padding: 0 24px 24px; }
 .primary-button { padding: 12px 28px; color: #fff; text-align: center; background: var(--blue); border: 0; border-radius: 6px; box-shadow: var(--shadow); }
 .chat-rail { display: flex; flex-direction: column; padding: 24px; }
-.user-bubble { align-self: flex-end; padding: 14px; color: #fff; background: var(--blue); border-radius: 8px 8px 0 8px; }
+.user-bubble { align-self: flex-end; padding: 14px; color: #fff; background: #eef3ff; border-radius: 8px 8px 0 8px; }
 .assistant-bubble { padding: 14px; margin-top: 24px; background: var(--blue-soft); border-radius: 8px; }
 .chat-spacer { flex: 1; }
 .chat-composer { padding-top: 16px; border-top: 1px solid var(--border); }
