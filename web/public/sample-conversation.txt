@@ -1,0 +1,7 @@
+[2026-06-10 14:30] Sales (Alice): Hi, thanks for taking the time today.
+[2026-06-10 14:31] Client (Acme Corporation): Happy to. We're evaluating an Enterprise SaaS Agreement for our regional teams this quarter.
+[2026-06-10 14:33] Sales (Alice): Great. Do you have a budget range in mind?
+[2026-06-10 14:35] Client (Acme Corporation): We've allocated around $250,000 for the first year, with room to grow if the rollout goes well.
+[2026-06-10 14:38] Sales (Alice): Understood. What timeline are you targeting for go-live?
+[2026-06-10 14:40] Client (Acme Corporation): Ideally within 12 weeks. We want the regional offices onboarded before Q4.
+[2026-06-10 14:43] Sales (Alice): Perfect. I'll prepare a tailored proposal and send it over for review.
