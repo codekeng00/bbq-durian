@@ -1,35 +1,32 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { Routes, Route } from "react-router-dom";
+import LoginPage from "./pages/LoginPage";
+import DashboardPage from "./pages/DashboardPage";
+import ActivePipelinesKengEmptyPage from "./pages/ActivePipelinesKengEmptyPage";
+import ActivePipelinesKengPage from "./pages/ActivePipelinesKengPage";
+import ActivePipelinesSusuPage from "./pages/ActivePipelinesSusuPage";
+import AnalysisWorkspacePage from "./pages/AnalysisWorkspacePage";
+import AnalysisChatPage from "./pages/AnalysisChatPage";
+import ClientEmailReviewPage from "./pages/ClientEmailReviewPage";
+import ComplianceReportPage from "./pages/ComplianceReportPage";
+import ContractApprovalPage from "./pages/ContractApprovalPage";
+import ContractBlockedPage from "./pages/ContractBlockedPage";
+import ContractReceivedPage from "./pages/ContractReceivedPage";
 
-function App() {
-  const [count, setCount] = useState(0)
-
+export default function App() {
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <Routes>
+      <Route path="/" element={<LoginPage />} />
+      <Route path="/dashboard" element={<DashboardPage />} />
+      <Route path="/active-pipelines-keng-empty" element={<ActivePipelinesKengEmptyPage />} />
+      <Route path="/active-pipelines-keng" element={<ActivePipelinesKengPage />} />
+      <Route path="/active-pipelines-susu" element={<ActivePipelinesSusuPage />} />
+      <Route path="/analysis-workspace" element={<AnalysisWorkspacePage />} />
+      <Route path="/analysis-chat" element={<AnalysisChatPage />} />
+      <Route path="/client-email-review" element={<ClientEmailReviewPage />} />
+      <Route path="/compliance-report" element={<ComplianceReportPage />} />
+      <Route path="/contract-approval" element={<ContractApprovalPage />} />
+      <Route path="/contract-blocked" element={<ContractBlockedPage />} />
+      <Route path="/contract-received" element={<ContractReceivedPage />} />
+    </Routes>
+  );
 }
-
-export default App
