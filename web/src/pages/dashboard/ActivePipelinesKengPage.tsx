@@ -1,6 +1,69 @@
 import AppSidebar from "../../components/AppSidebar";
+import DashboardSidebar from "../../components/DashboardSidebar";
+import EmptyPipelineState from "../../components/EmptyPipelineState";
 
-export default function ActivePipelinesKengPage() {
+type Pipeline = {
+  client: string;
+  description: string;
+  risk: "low" | "medium" | "high";
+  riskLabel: string;
+  value: string;
+  status: string;
+  statusClassName: string;
+};
+
+const defaultPipelines: Pipeline[] = [
+  {
+    client: "Acme Corp",
+    description: "Enterprise SaaS Agreement",
+    risk: "low",
+    riskLabel: "Low",
+    value: "$450,000",
+    status: "Ready for Analyzing",
+    statusClassName: "ready",
+  },
+  {
+    client: "Global Tech Inc",
+    description: "Infrastructure Expansion",
+    risk: "high",
+    riskLabel: "High",
+    value: "$1,200,000",
+    status: "Analyzing",
+    statusClassName: "analysis",
+  },
+  {
+    client: "Nebula Systems",
+    description: "Security Audit Service",
+    risk: "medium",
+    riskLabel: "Medium",
+    value: "$120,000",
+    status: "Reviewing",
+    statusClassName: "",
+  },
+];
+
+export default function ActivePipelinesKengPage({
+  pipelines = defaultPipelines,
+}: {
+  pipelines?: Pipeline[];
+}) {
+  if (pipelines.length === 0) {
+    return (
+      <div className="dashboard-shell">
+        <DashboardSidebar brandTo="/active-pipelines-keng-empty" />
+        <div className="main-area">
+          <header className="page-header">
+            <h1>Welcome back, Keng</h1>
+          </header>
+          <main className="content-canvas">
+            <div className="page-spacer" aria-hidden="true"></div>
+            <EmptyPipelineState titleId="keng-empty-title" />
+          </main>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <AppSidebar brandTo="/active-pipelines-keng" />
@@ -22,54 +85,26 @@ export default function ActivePipelinesKengPage() {
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>
-                  <strong>Acme Corp</strong>
-                  <small>Enterprise SaaS Agreement</small>
-                </td>
-                <td>
-                  <span className="risk low">Low</span>
-                </td>
-                <td>$450,000</td>
-                <td>
-                  <span className="status ready">Ready for Analyzing</span>
-                </td>
-                <td>
-                  <span className="more">⋮</span>
-                </td>
-              </tr>
-              <tr>
-                <td>
-                  <strong>Global Tech Inc</strong>
-                  <small>Infrastructure Expansion</small>
-                </td>
-                <td>
-                  <span className="risk high">High</span>
-                </td>
-                <td>$1,200,000</td>
-                <td>
-                  <span className="status analysis">Analyzing</span>
-                </td>
-                <td>
-                  <span className="more">⋮</span>
-                </td>
-              </tr>
-              <tr>
-                <td>
-                  <strong>Nebula Systems</strong>
-                  <small>Security Audit Service</small>
-                </td>
-                <td>
-                  <span className="risk medium">Medium</span>
-                </td>
-                <td>$120,000</td>
-                <td>
-                  <span className="status">Reviewing</span>
-                </td>
-                <td>
-                  <span className="more">⋮</span>
-                </td>
-              </tr>
+              {pipelines.map((pipeline) => (
+                <tr key={pipeline.client}>
+                  <td>
+                    <strong>{pipeline.client}</strong>
+                    <small>{pipeline.description}</small>
+                  </td>
+                  <td>
+                    <span className={`risk ${pipeline.risk}`}>{pipeline.riskLabel}</span>
+                  </td>
+                  <td>{pipeline.value}</td>
+                  <td>
+                    <span className={`status ${pipeline.statusClassName}`.trim()}>
+                      {pipeline.status}
+                    </span>
+                  </td>
+                  <td>
+                    <span className="more">⋮</span>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </section>

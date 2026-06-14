@@ -1,7 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import LoginPage from "./pages/auth/LoginPage";
 import DashboardPage from "./pages/dashboard/DashboardPage";
-import ActivePipelinesKengEmptyPage from "./pages/dashboard/ActivePipelinesKengEmptyPage";
 import ActivePipelinesKengPage from "./pages/dashboard/ActivePipelinesKengPage";
 import ActivePipelinesSusuPage from "./pages/dashboard/ActivePipelinesSusuPage";
 import AnalysisWorkspacePage from "./pages/analysis/AnalysisWorkspacePage";
@@ -17,7 +16,7 @@ export default function App() {
     <Routes>
       <Route path="/" element={<LoginPage />} />
       <Route path="/dashboard" element={<DashboardPage />} />
-      <Route path="/active-pipelines-keng-empty" element={<ActivePipelinesKengEmptyPage />} />
+      <Route path="/active-pipelines-keng-empty" element={<ActivePipelinesKengPage pipelines={[]} />} />
       <Route path="/active-pipelines-keng" element={<ActivePipelinesKengPage />} />
       <Route path="/active-pipelines-susu" element={<ActivePipelinesSusuPage />} />
       <Route path="/analysis-workspace" element={<AnalysisWorkspacePage />} />
