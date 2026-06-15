@@ -292,6 +292,17 @@ h1, h2, h3, h4, p { margin-top: 0; }
 }
 .upload-card h2, .upload-card p { margin: 0; font-size: 16px; font-weight: 400; line-height: 24px; }
 .upload-card p { color: var(--muted); }
+.upload-card .upload-error {
+  width: 100%;
+  padding: 10px 12px;
+  color: var(--red);
+  font-size: 13px;
+  line-height: 19px;
+  text-align: left;
+  background: #fff0ef;
+  border: 1px solid #ffd5d2;
+  border-radius: 4px;
+}
 .browse-button {
   display: flex;
   align-items: center;
@@ -341,6 +352,60 @@ h1, h2, h3, h4, p { margin-top: 0; }
 .queue-file small.ready { color: var(--green); font-weight: 700; }
 .progress { width: 48px; height: 4px; overflow: hidden; background: #d3e4fe; border-radius: 12px; }
 .progress i { display: block; width: 65%; height: 100%; background: var(--blue); }
+
+.band-thread-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  background: var(--blue-pale);
+  border-bottom: 1px solid var(--border);
+}
+.band-thread-header > div { display: flex; align-items: center; gap: 8px; }
+.band-thread-header h3 { margin: 0; color: var(--ink); font-size: 14px; }
+.band-thread-header small { color: var(--muted); font-size: 11px; }
+.band-label {
+  padding: 3px 6px;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .8px;
+  background: var(--blue);
+  border-radius: 3px;
+}
+.band-agent-thread {
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid #b9ccef;
+  border-radius: var(--radius);
+}
+.band-agent-messages {
+  display: grid;
+  gap: 0;
+}
+.band-agent-message {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  gap: 12px;
+  padding: 16px;
+  border-bottom: 1px solid #e8ebf3;
+}
+.band-agent-message:last-child { border-bottom: 0; }
+.band-agent-avatar {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  background: var(--purple);
+  border-radius: 10px;
+  place-items: center;
+}
+.band-agent-message strong { color: var(--purple); font-size: 12px; }
+.band-agent-message p { margin: 5px 0; color: var(--ink); font-size: 14px; line-height: 21px; }
+.band-agent-message small { color: var(--muted); font-size: 10px; }
 
 .workspace-chat {
   min-width: 0;
@@ -394,6 +459,32 @@ h1, h2, h3, h4, p { margin-top: 0; }
   border-radius: 12px;
 }
 .quick-actions button:first-child { color: var(--blue); }
+.next-step-card {
+  max-width: 620px;
+  padding: 24px;
+  background: #fff;
+  border: 1px solid #b9ccef;
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+}
+.next-step-eyebrow {
+  color: var(--blue);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+}
+.next-step-card h3 { margin: 8px 0; color: var(--ink); font-size: 20px; }
+.next-step-card p { max-width: 520px; margin-bottom: 20px; line-height: 24px; }
+.next-step-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.next-step-actions .primary-button { cursor: pointer; }
+.secondary-button {
+  padding: 12px 24px;
+  color: var(--blue);
+  background: #fff;
+  border: 1px solid var(--blue);
+  border-radius: 6px;
+  cursor: pointer;
+}
 
 .email-chat-layout {
   display: grid;
