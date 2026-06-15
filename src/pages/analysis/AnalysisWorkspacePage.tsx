@@ -10,78 +10,134 @@ type Phase = "upload" | "analyzing" | "chat" | "generating";
 
 export default function AnalysisWorkspacePage() {
   const navigate = useNavigate();
-  const { createDeal } = useDemoData();
+  const { createDeal, devMode } = useDemoData();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [phase, setPhase] = useState<Phase>("upload");
-  const [fileName, setFileName] = useState<string>("");
-  const [rawText, setRawText] = useState<string>("");
+  const [fileName, setFileName] = useState("");
+  const [rawText, setRawText] = useState("");
   const [extracted, setExtracted] = useState<ExtractedInfo>({});
   const [missingFields, setMissingFields] = useState<string[]>([]);
   const [chat, setChat] = useState<ChatMessage[]>([]);
-  const [answer, setAnswer] = useState<string>("");
+  const [answer, setAnswer] = useState("");
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   async function startAnalysis(text: string, name: string) {
+    setError("");
     setRawText(text);
     setFileName(name);
     setPhase("analyzing");
-    const result = await analyzeConversation(text);
-    setExtracted(result.extracted);
-    setMissingFields(result.missingFields);
-    if (result.nextQuestion) {
-      setChat([{ role: "agent", text: result.nextQuestion }]);
-      setPhase("chat");
-    } else {
-      await finish(result.extracted, []);
+    try {
+      const result = await analyzeConversation(text);
+      setExtracted(result.extracted);
+      setMissingFields(result.missingFields);
+      if (result.nextQuestion) {
+        setChat([{ role: "agent", text: result.nextQuestion }]);
+        setPhase("chat");
+      } else {
+        await finish(result.extracted, [], text);
+      }
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Analysis failed.");
+      setPhase("upload");
     }
   }
 
   function readFile(file: File) {
+    const isPlainText =
+      file.name.toLowerCase().endsWith(".txt") &&
+      (!file.type || file.type === "text/plain");
+    if (!isPlainText) {
+      setError("Upload a plain-text .txt file.");
+      return;
+    }
+    if (file.size > 100_000) {
+      setError("The conversation file must be 100 KB or smaller.");
+      return;
+    }
     const reader = new FileReader();
-    reader.onload = () => startAnalysis(String(reader.result), file.name);
+    reader.onload = () => void startAnalysis(String(reader.result), file.name);
+    reader.onerror = () => setError("The selected file could not be read.");
     reader.readAsText(file);
   }
 
-  function handleFileInput(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
+  function handleFileInput(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
     if (file) readFile(file);
   }
 
-  function handleDrop(e: DragEvent<HTMLElement>) {
-    e.preventDefault();
-    const file = e.dataTransfer.files?.[0];
-    if (file && file.name.endsWith(".txt")) readFile(file);
+  function handleDrop(event: DragEvent<HTMLElement>) {
+    event.preventDefault();
+    const file = event.dataTransfer.files?.[0];
+    if (file) readFile(file);
   }
 
   async function loadSample() {
-    const res = await fetch("/sample-conversation.txt");
-    const text = await res.text();
-    startAnalysis(text, "sample-conversation.txt");
-  }
-
-  async function submitAnswer() {
-    if (!answer.trim() || missingFields.length === 0) return;
-    const field = missingFields[0];
-    const userMsg: ChatMessage = { role: "user", text: answer };
-    setChat((prev) => [...prev, userMsg]);
-    const current = answer;
-    setAnswer("");
-    const result = await provideMissingInfo(extracted, field, current);
-    setExtracted(result.extracted);
-    setMissingFields(result.missingFields);
-    const nextChat = [...chat, userMsg];
-    if (result.nextQuestion) {
-      setChat([...nextChat, { role: "agent", text: result.nextQuestion }]);
-    } else {
-      setChat([...nextChat, { role: "agent", text: "All set — generating the proposal email now." }]);
-      await finish(result.extracted, [...nextChat, { role: "agent", text: "All set — generating the proposal email now." }]);
+    setError("");
+    try {
+      const response = await fetch("/sample-conversation.txt");
+      if (!response.ok) throw new Error("Training sample is unavailable.");
+      await startAnalysis(await response.text(), "sample-conversation.txt");
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Sample could not load.");
     }
   }
 
-  async function finish(info: ExtractedInfo, chatHistory: ChatMessage[]) {
+  async function submitAnswer() {
+    if (!answer.trim() || missingFields.length === 0 || submitting) return;
+    setSubmitting(true);
+    setError("");
+    const field = missingFields[0];
+    const userMessage: ChatMessage = { role: "user", text: answer };
+    const nextChat = [...chat, userMessage];
+    setChat(nextChat);
+    const currentAnswer = answer;
+    setAnswer("");
+    try {
+      const result = await provideMissingInfo(extracted, field, currentAnswer);
+      setExtracted(result.extracted);
+      setMissingFields(result.missingFields);
+      if (result.nextQuestion) {
+        setChat([...nextChat, { role: "agent", text: result.nextQuestion }]);
+      } else {
+        const completeMessage: ChatMessage = {
+          role: "agent",
+          text: "All required details are present. Generating the proposal now.",
+        };
+        setChat([...nextChat, completeMessage]);
+        await finish(result.extracted, [...nextChat, completeMessage], rawText);
+      }
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Could not save that answer.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function finish(
+    info: ExtractedInfo,
+    chatHistory: ChatMessage[],
+    sourceText: string,
+  ) {
     setPhase("generating");
-    const email = await generateEmail(info);
-    const deal = createDeal({ rawConversation: rawText, extracted: info, chatHistory, email });
+    const generated = await generateEmail(info, sourceText);
+    const deal = await createDeal({
+      rawConversation: sourceText,
+      extracted: info,
+      chatHistory,
+      email: generated.email,
+      validationIssues:
+        generated.validationMode === "rules_only"
+          ? [
+              ...generated.validationIssues,
+              "Live AI validation was unavailable; complete a manual proposal review.",
+            ]
+          : generated.validationIssues,
+      validationMode: generated.validationMode,
+      validationFailure: generated.validationFailure,
+      bandRoomId: generated.roomId,
+    });
     navigate(`/analysis-chat?dealId=${deal.id}`);
   }
 
@@ -92,61 +148,73 @@ export default function AnalysisWorkspacePage() {
           <strong>DealMaker</strong>
           <Link className="workspace-back" to="/active-pipelines-sales">
             <img src="/assets/workspace-back.svg" alt="" />
-            back
+            Back
           </Link>
         </header>
         <div className="workspace-intro">
-          <h1>Analysis Workspace</h1>
-          <p>Upload a sales conversation and let the AI build a proposal.</p>
+          <h1>Proposal Workspace</h1>
+          <p>Upload a plain-text sales conversation to create a reviewable proposal.</p>
         </div>
+
+        {error && <p className="error-banner" role="alert">{error}</p>}
 
         <section
           className="upload-card"
-          onDragOver={(e) => e.preventDefault()}
+          onDragOver={(event) => event.preventDefault()}
           onDrop={handleDrop}
         >
           <img src="/assets/workspace-upload.svg" alt="" />
           <div>
-            <h2>Upload conversation</h2>
-            <p>Drag a .txt file here, or browse. Supports .txt only.</p>
+            <h2>Upload conversation text</h2>
+            <p>Plain-text .txt files only, maximum 100 KB.</p>
           </div>
           <input
             ref={fileInputRef}
             type="file"
-            accept=".txt"
-            style={{ display: "none" }}
+            accept=".txt,text/plain"
+            hidden
             onChange={handleFileInput}
           />
-          <button className="browse-button" type="button" onClick={() => fileInputRef.current?.click()}>
+          <button
+            className="browse-button"
+            type="button"
+            disabled={phase !== "upload"}
+            onClick={() => fileInputRef.current?.click()}
+          >
             <img src="/assets/workspace-plus.svg" alt="" />
-            Browse Files
+            Select Text File
           </button>
-          <button type="button" onClick={loadSample} className="sample-link">
-            Use sample conversation
-          </button>
+          {devMode && (
+            <button type="button" onClick={loadSample} className="sample-link">
+              Use local training sample
+            </button>
+          )}
         </section>
 
         {fileName && (
           <>
             <h2 className="queue-title">
               <img src="/assets/workspace-queue.svg" alt="" />
-              QUEUE
+              PROCESSING
             </h2>
             <div className="queue-list">
               <article className="queue-item">
                 <div className="queue-file">
                   <img
-                    src={phase === "analyzing" ? "/assets/workspace-processing.svg" : "/assets/workspace-document.svg"}
+                    src={
+                      phase === "analyzing"
+                        ? "/assets/workspace-processing.svg"
+                        : "/assets/workspace-document.svg"
+                    }
                     alt=""
                   />
                   <div>
                     <span>{fileName}</span>
                     <small className={phase === "analyzing" ? "" : "ready"}>
-                      {phase === "analyzing" ? "Processing..." : "Ready"}
+                      {phase === "analyzing" ? "Processing..." : "Validated"}
                     </small>
                   </div>
                 </div>
-                {phase !== "analyzing" && <img src="/assets/workspace-ready.svg" width={12} alt="" />}
               </article>
             </div>
           </>
@@ -157,60 +225,46 @@ export default function AnalysisWorkspacePage() {
         <header className="assistant-header">
           <img src="/assets/workspace-assistant.svg" alt="" />
           <div>
-            <strong>AI Assistant</strong>
+            <strong>Proposal Assistant</strong>
             <small>
-              {phase === "upload" && "Waiting for conversation..."}
-              {phase === "analyzing" && "Analyzing context..."}
-              {phase === "chat" && "Needs a few details..."}
-              {phase === "generating" && "Generating proposal..."}
+              {phase === "upload" && "Waiting for conversation text"}
+              {phase === "analyzing" && "Extracting supported facts"}
+              {phase === "chat" && "Collecting required business details"}
+              {phase === "generating" && "Drafting and validating proposal"}
             </small>
           </div>
         </header>
         <div className="chat-feed">
           {phase === "analyzing" && (
             <section className="pipeline-box">
-              <h3>CURRENT PIPELINE</h3>
-              <div className="pipeline-step">
-                <span>
-                  <img src="/assets/workspace-complete.svg" alt="" />
-                  Text Extraction
-                </span>
-                <small>Extraction Agent • Completed</small>
-              </div>
+              <h3>CURRENT WORKFLOW</h3>
               <div className="pipeline-step in-progress">
-                <span>
-                  <img src="/assets/workspace-progress.svg" alt="" />
-                  Intent Mapping
-                </span>
-                <small>Analysis Agent • In Progress</small>
-              </div>
-              <div className="pipeline-step pending">
-                <span>
-                  <img src="/assets/workspace-pending.svg" alt="" />
-                  Strategy Drafting
-                </span>
-                <small>Strategy Agent • Pending</small>
+                <span>Fact extraction and required-field validation</span>
+                <small>In progress</small>
               </div>
             </section>
           )}
 
-          {chat.map((msg, i) => (
-            <article key={i}>
-              <div className={msg.role === "user" ? "ai-bubble user-bubble" : "ai-bubble"}>
-                {msg.text}
+          {chat.map((message, index) => (
+            <article key={`${message.role}-${index}`}>
+              <div
+                className={
+                  message.role === "user" ? "ai-bubble user-bubble" : "ai-bubble"
+                }
+              >
+                {message.text}
               </div>
               <p className="agent-meta">
-                <b className={msg.role === "agent" ? "purple" : ""}>{msg.role === "agent" ? "SUPPLEMENT AGENT" : "YOU"}</b> &nbsp;• Just now
+                <b className={message.role === "agent" ? "purple" : ""}>
+                  {message.role === "agent" ? "ASSISTANT" : "YOU"}
+                </b>
               </p>
             </article>
           ))}
 
           {phase === "generating" && (
             <article>
-              <div className="ai-bubble">Generating the proposal email...</div>
-              <p className="agent-meta">
-                <b>BUILD AGENT</b> &nbsp;• Just now
-              </p>
+              <div className="ai-bubble">Generating and validating the proposal...</div>
             </article>
           )}
         </div>
@@ -219,17 +273,20 @@ export default function AnalysisWorkspacePage() {
           <div className="chat-composer">
             <div className="composer-field">
               <textarea
-                placeholder="Type your answer..."
+                placeholder="Type the required information..."
                 value={answer}
-                onChange={(e) => setAnswer(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    submitAnswer();
+                disabled={submitting}
+                onChange={(event) => setAnswer(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && !event.shiftKey) {
+                    event.preventDefault();
+                    void submitAnswer();
                   }
                 }}
               />
-              <button type="button" onClick={submitAnswer}>↑</button>
+              <button type="button" disabled={submitting} onClick={submitAnswer}>
+                {submitting ? "..." : "Send"}
+              </button>
             </div>
           </div>
         )}

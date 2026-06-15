@@ -22,6 +22,11 @@ lerna-debug.log*
 *.njsproj
 *.sln
 *.sw?
+skills
+.dev.vars
+band-agents.local.json
+band-user-key.local.txt
+.wrangler/
 
 # Claude local preview config
 .claude/launch.json

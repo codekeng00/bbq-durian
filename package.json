@@ -4,18 +4,40 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "start": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run.ps1",
+    "start:demo": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-demo.ps1",
+    "start:cloudflare": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-cloudflare.ps1",
+    "band:configure": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/configure-band.ps1",
+    "band:create": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/create-band-agents.ps1",
+    "band:create-and-deploy": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/create-band-agents.ps1 -ConfigureCloudflare",
+    "band:online": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-band-online.ps1",
+    "band:online:foreground": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-band-online.ps1 -Foreground",
+    "band:offline": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/stop-band-online.ps1",
     "dev": "vite",
+    "dev:full": "npm run build && wrangler dev",
     "build": "tsc -b && vite build",
+    "deploy": "npm run start:cloudflare",
+    "db:migrate:local": "wrangler d1 migrations apply DB --local",
+    "db:migrate:remote": "wrangler d1 migrations apply DB --remote",
+    "types:worker": "wrangler types worker-configuration.d.ts",
+    "typecheck:worker": "tsc --noEmit -p tsconfig.worker.json",
     "lint": "eslint .",
+    "test": "vitest run",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@langchain/core": "^1.1.49",
+    "@langchain/langgraph": "^1.4.2",
+    "@thenvoi/sdk": "^0.1.6",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "react-router-dom": "^6.30.4"
+    "react-router-dom": "^6.30.4",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260613.1",
     "@eslint/js": "^9.25.0",
+    "@types/node": "^25.9.3",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "@vitejs/plugin-react": "^4.4.1",
@@ -25,6 +47,8 @@
     "globals": "^16.0.0",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.30.1",
-    "vite": "^6.3.5"
+    "vite": "^6.3.5",
+    "vitest": "^4.1.9",
+    "wrangler": "^4.100.0"
   }
 }
