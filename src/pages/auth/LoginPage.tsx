@@ -1,44 +1,21 @@
-import { useEffect, useState } from "react";
+import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { DEMO_USERS } from "../../data/users";
 import { useDemoData } from "../../hooks/useDemoData";
 import type { Team } from "../../data/types";
 
 export default function LoginPage() {
-  const [submitting, setSubmitting] = useState<Team>();
-  const [error, setError] = useState("");
+  const [role, setRole] = useState<Team>("sales");
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
-  const {
-    currentUser,
-    devMode,
-    sessionLoading,
-    login,
-  } = useDemoData();
+  const { login } = useDemoData();
 
-  useEffect(() => {
-    if (!currentUser) return;
-    navigate(
-      currentUser.team === "sales"
-        ? "/active-pipelines-sales"
-        : "/active-pipelines-business",
-      { replace: true },
-    );
-  }, [currentUser, navigate]);
+  const email = DEMO_USERS[role].email;
 
-  async function handleDevLogin(team: Team) {
-    setSubmitting(team);
-    setError("");
-    try {
-      const user = await login(team);
-      navigate(
-        user.team === "sales"
-          ? "/active-pipelines-sales"
-          : "/active-pipelines-business",
-      );
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Login failed.");
-    } finally {
-      setSubmitting(undefined);
-    }
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    login(role);
+    navigate(role === "sales" ? "/active-pipelines-sales" : "/active-pipelines-business");
   }
 
   return (
@@ -56,16 +33,16 @@ export default function LoginPage() {
       <main className="login-layout">
         <section className="login-hero" aria-labelledby="hero-title">
           <div className="hero-copy">
-            <h1 id="hero-title">Secure deal review from proposal to agreement.</h1>
+            <h1 id="hero-title">Know More. Move Faster. Sell Better.</h1>
             <p>
-              Versioned proposals, policy-aware review, human approvals, and
-              auditable agreement records for sales and business teams.
+              DealMaker synchronizes your entire revenue pipeline, from initial CRM lead intake
+              to AI-driven proposal generation and final human verification.
             </p>
           </div>
           <figure className="hero-visual">
             <img
               src="/assets/collaboration.png"
-              alt="Business and sales teams connected through a secure digital workflow"
+              alt="Business and sales teams connected through an AI-enabled digital network"
             />
           </figure>
         </section>
@@ -73,65 +50,78 @@ export default function LoginPage() {
         <section className="login-panel" aria-labelledby="login-title">
           <div className="login-card">
             <header className="login-heading">
-              <h2 id="login-title">Organization access</h2>
-              <p>
-                Production identity is verified by Cloudflare Access. Roles are
-                assigned by your organization and cannot be selected in the browser.
-              </p>
+              <h2 id="login-title">Welcome back</h2>
+              <p>Access your AI-augmented sales environment.</p>
             </header>
 
-            {sessionLoading ? (
-              <p className="muted-note">Checking secure session...</p>
-            ) : devMode ? (
-              <>
-                <div className="dev-mode-note">
-                  Local development mode. Choose a seeded user to test the workflow.
-                </div>
-                <div className="role-selector" aria-label="Development user">
-                  <button
-                    className="role-button"
-                    type="button"
-                    disabled={Boolean(submitting)}
-                    onClick={() => handleDevLogin("sales")}
-                  >
-                    <img src="/assets/sales-role.svg" alt="" aria-hidden="true" />
-                    {submitting === "sales" ? "Signing in..." : "Alice - Sales"}
-                  </button>
-                  <button
-                    className="role-button"
-                    type="button"
-                    disabled={Boolean(submitting)}
-                    onClick={() => handleDevLogin("business")}
-                  >
-                    <img src="/assets/business-role.svg" alt="" aria-hidden="true" />
-                    {submitting === "business" ? "Signing in..." : "Bob - Business"}
-                  </button>
-                </div>
-              </>
-            ) : (
-              <div className="access-required">
-                <strong>Access session not found</strong>
-                <p>
-                  Open this application through your organization&apos;s protected
-                  DealMaker URL and complete the emailed one-time PIN or SSO prompt.
-                </p>
-                <button
-                  className="authenticate-button"
-                  type="button"
-                  onClick={() => window.location.reload()}
-                >
-                  Check Access Session
-                </button>
-              </div>
-            )}
+            <div className="role-selector" aria-label="Select your role">
+              <button
+                className={`role-button ${role === "sales" ? "is-active" : ""}`}
+                type="button"
+                aria-pressed={role === "sales"}
+                onClick={() => setRole("sales")}
+              >
+                <img src="/assets/sales-role.svg" alt="" aria-hidden="true" />
+                Sales Executive
+              </button>
+              <button
+                className={`role-button ${role === "business" ? "is-active" : ""}`}
+                type="button"
+                aria-pressed={role === "business"}
+                onClick={() => setRole("business")}
+              >
+                <img src="/assets/business-role.svg" alt="" aria-hidden="true" />
+                Business Admin
+              </button>
+            </div>
 
-            {error && <p className="error-banner" role="alert">{error}</p>}
+            <form className="login-form" onSubmit={handleSubmit}>
+              <label className="form-field">
+                <span>Organization Email</span>
+                <input
+                  type="email"
+                  name="email"
+                  value={email}
+                  readOnly
+                  placeholder="name@company.com"
+                />
+              </label>
+              <div className="form-field">
+                <span className="label-row">
+                  <label htmlFor="password">Password</label>
+                  <a href="#">Forgot?</a>
+                </span>
+                <span className="password-control">
+                  <input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    value="demo1234"
+                    readOnly
+                    placeholder="••••••••"
+                  />
+                  <button
+                    className="visibility-toggle"
+                    type="button"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    onClick={() => setShowPassword((value) => !value)}
+                  >
+                    <img src="/assets/eye.svg" alt="" aria-hidden="true" />
+                  </button>
+                </span>
+              </div>
+              <label className="remember-option">
+                <input type="checkbox" name="remember" />
+                Remember this session for 30 days
+              </label>
+              <button className="authenticate-button" type="submit">
+                Authenticate
+                <img src="/assets/arrow-right.svg" alt="" aria-hidden="true" />
+              </button>
+            </form>
 
             <p className="account-access">
-              Need access?{" "}
-              <a href="mailto:support@dealmaker.example?subject=DealMaker%20access%20request">
-                Request organization access
-              </a>
+              New to DealMaker? <a href="#">Request Account Access</a>
             </p>
           </div>
         </section>
@@ -140,10 +130,10 @@ export default function LoginPage() {
       <footer className="login-footer">
         <span>
           <img src="/assets/agent.svg" alt="" aria-hidden="true" />
-          Identity and roles enforced by the server
+          Powered by DealMaker AI Agent Orchestration
         </span>
         <i aria-hidden="true">|</i>
-        <span>Production workflow</span>
+        <span>v2.4.0-Enterprise</span>
       </footer>
     </div>
   );
