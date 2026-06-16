@@ -3,20 +3,38 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "dev:full": "npm run build && wrangler dev",
+    "dev:demo": "npm run build && wrangler dev --local --port 8787 --var DEV_AUTH_ENABLED:true",
+    "db:migrate:local": "wrangler d1 migrations apply DB --local",
+    "db:migrate:remote": "wrangler d1 migrations apply DB --remote",
+    "types:worker": "wrangler types worker-configuration.d.ts",
+    "typecheck:worker": "tsc --noEmit -p tsconfig.worker.json",
+    "band:online": "node scripts/band-runtime.mjs",
+    "test": "vitest run",
+    "band:sync": "node scripts/sync-band-creds.mjs"
   },
   "dependencies": {
+    "@langchain/core": "^1.1.49",
+    "@langchain/langgraph": "^1.4.2",
+    "@thenvoi/sdk": "^0.1.6",
     "mammoth": "^1.12.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "react-router-dom": "^6.30.4"
+    "react-router-dom": "^6.30.4",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260613.1",
     "@eslint/js": "^9.25.0",
+    "@types/node": "^25.9.3",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "@vitejs/plugin-react": "^4.4.1",
@@ -26,6 +44,8 @@
     "globals": "^16.0.0",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.30.1",
-    "vite": "^6.3.5"
+    "vite": "^6.3.5",
+    "vitest": "^4.1.9",
+    "wrangler": "^4.100.0"
   }
 }

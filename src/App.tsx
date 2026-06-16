@@ -6,17 +6,18 @@ import AnalysisWorkspacePage from "./pages/analysis/AnalysisWorkspacePage";
 import AnalysisChatPage from "./pages/analysis/AnalysisChatPage";
 import ContractApprovalPage from "./pages/contract/ContractApprovalPage";
 import ContractReceivedPage from "./pages/contract/ContractReceivedPage";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 export default function App() {
   return (
     <Routes>
       <Route path="/" element={<LoginPage />} />
-      <Route path="/active-pipelines-sales" element={<ActivePipelinesSalesPage />} />
-      <Route path="/active-pipelines-business" element={<ActivePipelinesBusinessPage />} />
-      <Route path="/analysis-workspace" element={<AnalysisWorkspacePage />} />
-      <Route path="/analysis-chat" element={<AnalysisChatPage />} />
-      <Route path="/contract-approval" element={<ContractApprovalPage />} />
-      <Route path="/contract-received" element={<ContractReceivedPage />} />
+      <Route path="/active-pipelines-sales" element={<ProtectedRoute team="sales"><ActivePipelinesSalesPage /></ProtectedRoute>} />
+      <Route path="/active-pipelines-business" element={<ProtectedRoute team="business"><ActivePipelinesBusinessPage /></ProtectedRoute>} />
+      <Route path="/analysis-workspace" element={<ProtectedRoute team="sales"><AnalysisWorkspacePage /></ProtectedRoute>} />
+      <Route path="/analysis-chat" element={<ProtectedRoute team="sales"><AnalysisChatPage /></ProtectedRoute>} />
+      <Route path="/contract-approval" element={<ProtectedRoute team="business"><ContractApprovalPage /></ProtectedRoute>} />
+      <Route path="/contract-received" element={<ProtectedRoute team="sales"><ContractReceivedPage /></ProtectedRoute>} />
     </Routes>
   );
 }

@@ -7,15 +7,27 @@ import type { Team } from "../../data/types";
 export default function LoginPage() {
   const [role, setRole] = useState<Team>("sales");
   const [showPassword, setShowPassword] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
   const { login } = useDemoData();
 
   const email = DEMO_USERS[role].email;
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    login(role);
-    navigate(role === "sales" ? "/active-pipelines-sales" : "/active-pipelines-business");
+    setSubmitting(true);
+    setError("");
+    try {
+      const user = await login(role);
+      navigate(
+        user.team === "sales" ? "/active-pipelines-sales" : "/active-pipelines-business",
+      );
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Login failed.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -114,10 +126,15 @@ export default function LoginPage() {
                 <input type="checkbox" name="remember" />
                 Remember this session for 30 days
               </label>
-              <button className="authenticate-button" type="submit">
-                Authenticate
+              <button className="authenticate-button" type="submit" disabled={submitting}>
+                {submitting ? "Authenticating..." : "Authenticate"}
                 <img src="/assets/arrow-right.svg" alt="" aria-hidden="true" />
               </button>
+              {error && (
+                <p className="error-banner" role="alert">
+                  {error}
+                </p>
+              )}
             </form>
 
             <p className="account-access">

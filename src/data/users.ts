@@ -1,14 +1,20 @@
-import type { DemoUser, Team } from "./types";
+import type { Team } from "./types";
 
-export const DEMO_USERS: Record<Team, DemoUser> = {
+// Display-only demo accounts used to prefill the login form's email field.
+// Real identity/roles are established by the backend dev-login (see DemoContext.login).
+type DemoUserDisplay = {
+  name: string;
+  email: string;
+  team: Team;
+};
+
+export const DEMO_USERS: Record<Team, DemoUserDisplay> = {
   sales: {
-    id: "user-sales-alice",
     name: "Alice Chen",
     email: "alice@dealmaker.com",
     team: "sales",
   },
   business: {
-    id: "user-business-bob",
     name: "Bob Wilson",
     email: "bob@dealmaker.com",
     team: "business",

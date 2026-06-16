@@ -1,0 +1,44 @@
+{
+  "sales_parser": {
+    "id": "PASTE_AGENT_ID",
+    "key": "PASTE_AGENT_API_KEY",
+    "name": "Sales Parsing Agent",
+    "handle": "sales.parser"
+  },
+  "sales_enrichment": {
+    "id": "PASTE_AGENT_ID",
+    "key": "PASTE_AGENT_API_KEY",
+    "name": "Sales Enrichment Agent",
+    "handle": "sales.enrichment"
+  },
+  "sales_construction": {
+    "id": "PASTE_AGENT_ID",
+    "key": "PASTE_AGENT_API_KEY",
+    "name": "Sales Construction Agent",
+    "handle": "sales.construction"
+  },
+  "sales_validation": {
+    "id": "PASTE_AGENT_ID",
+    "key": "PASTE_AGENT_API_KEY",
+    "name": "Sales Validation Agent",
+    "handle": "sales.validation"
+  },
+  "business_parser": {
+    "id": "PASTE_AGENT_ID",
+    "key": "PASTE_AGENT_API_KEY",
+    "name": "Business Parsing Agent",
+    "handle": "business.parser"
+  },
+  "business_evaluation": {
+    "id": "PASTE_AGENT_ID",
+    "key": "PASTE_AGENT_API_KEY",
+    "name": "Business Evaluation Agent",
+    "handle": "business.evaluation"
+  },
+  "business_judgment": {
+    "id": "PASTE_AGENT_ID",
+    "key": "PASTE_AGENT_API_KEY",
+    "name": "Business Judgment Agent",
+    "handle": "business.judgment"
+  }
+}

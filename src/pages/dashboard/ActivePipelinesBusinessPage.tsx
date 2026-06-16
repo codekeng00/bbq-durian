@@ -5,10 +5,12 @@ import { useDemoData } from "../../hooks/useDemoData";
 
 export default function ActivePipelinesBusinessPage() {
   const navigate = useNavigate();
-  const { deals } = useDemoData();
+  const { deals, currentUser } = useDemoData();
 
-  const pending = deals.filter((d) => d.status === "pending_business_review");
-  const history = deals.filter((d) => d.status === "approved" || d.status === "rejected");
+  const pending = deals.filter((deal) => deal.status === "pending_business_review");
+  const history = deals.filter(
+    (deal) => deal.status === "approved" || deal.status === "rejected",
+  );
 
   if (pending.length === 0 && history.length === 0) {
     return (
@@ -16,7 +18,7 @@ export default function ActivePipelinesBusinessPage() {
         <AppSidebar brandTo="/active-pipelines-business" />
         <main className="app-main pipeline-main">
           <header className="pipeline-heading">
-            <h1>Welcome back, Bob</h1>
+            <h1>Welcome back, {currentUser?.name}</h1>
           </header>
           <EmptyPipelineState titleId="business-empty-title" />
         </main>
@@ -29,40 +31,48 @@ export default function ActivePipelinesBusinessPage() {
       <AppSidebar brandTo="/active-pipelines-business" />
       <main className="app-main pipeline-main">
         <header className="pipeline-heading">
-          <h1>Welcome back, Bob</h1>
-          <p className="review-notice">{pending.length} proposal{pending.length === 1 ? "" : "s"} awaiting review</p>
+          <h1>Welcome back, {currentUser?.name}</h1>
+          <p className="review-notice">
+            {pending.length} proposal{pending.length === 1 ? "" : "s"} awaiting review
+          </p>
         </header>
 
         <section className="pipeline-card">
           <h2>Pending Review</h2>
           {pending.length === 0 ? (
-            <p className="muted-note">No proposals awaiting review.</p>
+            <p className="muted-note table-note">No proposals awaiting review.</p>
           ) : (
             <table className="pipeline-table">
               <thead>
                 <tr>
-                  <th style={{ width: "36%" }}>Client Name</th>
-                  <th style={{ width: "20%" }}>Value</th>
-                  <th>Subject</th>
-                  <th style={{ width: "12%" }}>Action</th>
+                  <th style={{ width: "30%" }}>Client</th>
+                  <th style={{ width: "18%" }}>Value</th>
+                  <th>Proposal</th>
+                  <th style={{ width: "18%" }}>Action</th>
                 </tr>
               </thead>
               <tbody>
                 {pending.map((deal) => (
-                  <tr
-                    key={deal.id}
-                    className="row-clickable"
-                    onClick={() => navigate(`/contract-approval?dealId=${deal.id}`)}
-                  >
+                  <tr key={deal.id}>
                     <td data-label="Client">
-                      <strong>{deal.extracted.clientName ?? "Untitled Client"}</strong>
+                      <strong>{deal.extracted.clientName}</strong>
                     </td>
-                    <td data-label="Value">${(deal.extracted.value ?? 0).toLocaleString()}</td>
-                    <td data-label="Subject">
-                      <small>{deal.email?.subject ?? ""}</small>
+                    <td data-label="Value">
+                      ${deal.extracted.value?.toLocaleString()}
                     </td>
-                    <td data-label="">
-                      <span className="more">⋮</span>
+                    <td data-label="Proposal">
+                      <small>{deal.email?.subject}</small>
+                    </td>
+                    <td data-label="Action">
+                      <button
+                        className="table-action"
+                        type="button"
+                        onClick={() =>
+                          navigate(`/contract-approval?dealId=${deal.id}`)
+                        }
+                      >
+                        Review Proposal
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -73,26 +83,44 @@ export default function ActivePipelinesBusinessPage() {
 
         {history.length > 0 && (
           <section className="pipeline-card pipeline-card-stacked">
-            <h2>History</h2>
+            <h2>Decision History</h2>
             <table className="pipeline-table">
               <thead>
                 <tr>
-                  <th style={{ width: "36%" }}>Client Name</th>
-                  <th style={{ width: "20%" }}>Value</th>
+                  <th style={{ width: "30%" }}>Client</th>
+                  <th style={{ width: "18%" }}>Value</th>
                   <th>Outcome</th>
+                  <th style={{ width: "18%" }}>Action</th>
                 </tr>
               </thead>
               <tbody>
                 {history.map((deal) => (
                   <tr key={deal.id}>
                     <td data-label="Client">
-                      <strong>{deal.extracted.clientName ?? "Untitled Client"}</strong>
+                      <strong>{deal.extracted.clientName}</strong>
                     </td>
-                    <td data-label="Value">${(deal.extracted.value ?? 0).toLocaleString()}</td>
+                    <td data-label="Value">
+                      ${deal.extracted.value?.toLocaleString()}
+                    </td>
                     <td data-label="Outcome">
-                      <span className={`status ${deal.status === "approved" ? "ready" : "high"}`}>
+                      <span
+                        className={`status ${
+                          deal.status === "approved" ? "ready" : "high"
+                        }`}
+                      >
                         {deal.status === "approved" ? "Approved" : "Rejected"}
                       </span>
+                    </td>
+                    <td data-label="Action">
+                      <button
+                        className="table-action"
+                        type="button"
+                        onClick={() =>
+                          navigate(`/contract-approval?dealId=${deal.id}`)
+                        }
+                      >
+                        View Decision
+                      </button>
                     </td>
                   </tr>
                 ))}
