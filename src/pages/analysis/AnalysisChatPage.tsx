@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useDemoData } from "../../hooks/useDemoData";
-import AgentCollaboration from "../../components/AgentCollaboration";
 import type { Deal } from "../../data/types";
 
 export default function AnalysisChatPage() {
@@ -251,7 +250,6 @@ export default function AnalysisChatPage() {
           </div>
         </article>
       </section>
-      <AgentCollaboration dealId={deal.id} />
     </main>
   );
 }
