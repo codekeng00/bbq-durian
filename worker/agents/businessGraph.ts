@@ -126,6 +126,7 @@ Write in formal legal language. Use the deal facts provided. Where information i
           },
         ],
         () => `COMMERCIAL SALES CONTRACT\n\nDate: ${today}\nContract No.: [AUTO-GENERATED]\n\nPARTIES\nSeller: ${context.organizationName}\nSeller Representative: ${context.reviewerName}\nBuyer: ${parsed.clientName}\nBuyer Contact: ${state.deal.extracted.contactEmail ?? "[Not provided]"}\n\nSCOPE\n${parsed.obligations.join("\n")}\n\nCOMMERCIAL TERMS\nTotal Value: $${parsed.value.toLocaleString()}\nPayment Terms: ${parsed.requestedTerms.join(", ")}\n\nSIGNATURES\nSeller Representative: _______________________\nBuyer Representative: _______________________`,
+        2000,
       );
 
       const parserMsg = await textCompletion(
