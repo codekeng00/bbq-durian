@@ -48,6 +48,7 @@ export type BusinessAgentEmit = (agentName: string, to: string, message: string)
 export async function runBusinessGraph(
   env: Env,
   deal: DealRecord,
+  context: { organizationName: string; reviewerName: string },
   emit: BusinessAgentEmit = () => {},
 ): Promise<
   Evaluation &
@@ -121,10 +122,11 @@ Write in formal legal language. Use the deal facts provided. Where information i
           },
           {
             role: "user",
-            content: `Contract date: ${today}\nDeal facts: ${JSON.stringify(state.deal.extracted)}\nProposal email subject: ${state.deal.email?.subject ?? ""}\nProposal email body:\n${state.deal.email?.body ?? ""}\nParsed terms: ${JSON.stringify(parsed)}`,
+            content: `Contract date: ${today}\nSeller company: ${context.organizationName}\nSeller representative: ${context.reviewerName}\nDeal facts: ${JSON.stringify(state.deal.extracted)}\nProposal email subject: ${state.deal.email?.subject ?? ""}\nProposal email body:\n${state.deal.email?.body ?? ""}\nParsed terms: ${JSON.stringify(parsed)}`,
           },
         ],
-        () => `COMMERCIAL SALES CONTRACT\n\nDate: ${today}\nContract No.: [AUTO-GENERATED]\n\nPARTIES\nSeller: [Seller Company]\nBuyer: ${parsed.clientName}\n\nSCOPE\n${parsed.obligations.join("\n")}\n\nCOMMERCIAL TERMS\nTotal Value: $${parsed.value.toLocaleString()}\nPayment Terms: ${parsed.requestedTerms.join(", ")}\n\nSIGNATURES\nSeller: _______________________\nBuyer: _______________________`,
+        () => `COMMERCIAL SALES CONTRACT\n\nDate: ${today}\nContract No.: [AUTO-GENERATED]\n\nPARTIES\nSeller: ${context.organizationName}\nSeller Representative: ${context.reviewerName}\nBuyer: ${parsed.clientName}\nBuyer Contact: ${state.deal.extracted.contactEmail ?? "[Not provided]"}\n\nSCOPE\n${parsed.obligations.join("\n")}\n\nCOMMERCIAL TERMS\nTotal Value: $${parsed.value.toLocaleString()}\nPayment Terms: ${parsed.requestedTerms.join(", ")}\n\nSIGNATURES\nSeller Representative: _______________________\nBuyer Representative: _______________________`,
+        2000,
       );
 
       const parserMsg = await textCompletion(
