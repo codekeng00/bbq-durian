@@ -274,21 +274,12 @@ export default function ContractApprovalPage() {
             </div>
           ) : evaluation ? (
             <>
-              <div
-                className={
-                  evaluation.mode === "rules_only"
-                    ? "warning-banner compact-banner"
-                    : "info-banner compact-banner"
-                }
-              >
-                <strong>
-                  {evaluation.mode === "live_ai"
-                    ? "Live AI and policy review"
-                    : "Rules-only degraded review"}
-                </strong>
-                <small>{evaluation.provider}</small>
-                {evaluation.failureReason && <p>{evaluation.failureReason}</p>}
-              </div>
+              {evaluation.mode === "rules_only" && (
+                <div className="warning-banner compact-banner">
+                  <strong>Rules-only degraded review</strong>
+                  {evaluation.failureReason && <p>{evaluation.failureReason}</p>}
+                </div>
+              )}
               <div className="score-grid">
                 <span>Profit <strong>{evaluation.profitScore}</strong></span>
                 <span>Compliance <strong>{evaluation.complianceScore}</strong></span>
