@@ -129,11 +129,14 @@ const SalesState = Annotation.Root({
   coordinationContext: Annotation<string>,
 });
 
+export type AgentEmit = (agentName: string, stage: string, summary: string) => void;
+
 export async function runSalesGraph(
   env: Env,
   extracted: ExtractedInfo,
   rawConversation = "",
   workflowContext: { organizationId: string; dealId?: string },
+  emit: AgentEmit = () => {},
 ): Promise<{
   email: Email;
   validationIssues: string[];
@@ -159,6 +162,7 @@ export async function runSalesGraph(
         provider: "featherless",
         output: parsed,
       });
+      emit("Sales Parser", "parsed", `Extracted deal facts for ${parsed.clientName ?? "client"}`);
       const coordinationContext = await handoff(
         env,
         room,
@@ -179,6 +183,7 @@ export async function runSalesGraph(
         provider: "keyword-fallback",
         sources: rows.map((row) => row.title),
       });
+      emit("Sales Enrichment", "enriched", `Retrieved ${rows.length} knowledge source(s)`);
       const coordinationContext = await handoff(
         env,
         room,
@@ -228,6 +233,7 @@ export async function runSalesGraph(
         provider: "featherless",
         subject: email.subject,
       });
+      emit("Sales Construction", "drafted", `Draft proposal ready: ${email.subject}`);
       const coordinationContext = await handoff(
         env,
         room,
@@ -267,6 +273,7 @@ export async function runSalesGraph(
         mode: completion.mode,
         failureReason: completion.failureReason,
       });
+      emit("Sales Validation", "validated", `Validation complete — ${result.issues.length === 0 ? "no issues" : result.issues.join("; ")}`);
       await handoff(
         env,
         room,
