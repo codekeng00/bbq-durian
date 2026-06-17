@@ -63,7 +63,7 @@ export default function ContractApprovalPage() {
     return () => {
       active = false;
     };
-  }, [dealId, evaluateDeal, loadDeal]);
+  }, [dealId, loadDeal]);
 
   if (loading) {
     return (
