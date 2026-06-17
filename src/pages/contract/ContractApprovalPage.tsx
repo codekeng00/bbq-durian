@@ -29,6 +29,7 @@ export default function ContractApprovalPage() {
   const [rejectDetails, setRejectDetails] = useState("");
   const [overrideReason, setOverrideReason] = useState("");
   const [agentSteps, setAgentSteps] = useState<BusinessAgentStep[]>([]);
+  const [panelTab, setPanelTab] = useState<"review" | "discussion">("review");
 
   useEffect(() => {
     let active = true;
@@ -226,7 +227,27 @@ export default function ContractApprovalPage() {
         </section>
 
         <aside className="approval-panel">
-          <h2>Policy and Risk Review</h2>
+          {evaluation && agentSteps.length > 0 ? (
+            <div className="panel-tabs">
+              <button
+                className={`panel-tab ${panelTab === "review" ? "panel-tab--active" : ""}`}
+                type="button"
+                onClick={() => setPanelTab("review")}
+              >
+                Policy Review
+              </button>
+              <button
+                className={`panel-tab ${panelTab === "discussion" ? "panel-tab--active" : ""}`}
+                type="button"
+                onClick={() => setPanelTab("discussion")}
+              >
+                Agent Discussion
+              </button>
+            </div>
+          ) : (
+            <h2>Policy and Risk Review</h2>
+          )}
+
           {evaluating ? (
             <div className="evaluation-aside-stream">
               {agentSteps.map((step, i) => (
@@ -254,6 +275,18 @@ export default function ContractApprovalPage() {
               <button className="primary-button" type="button" onClick={startEvaluation}>
                 Start AI Review
               </button>
+            </div>
+          ) : evaluation && panelTab === "discussion" ? (
+            <div className="evaluation-aside-stream">
+              {agentSteps.map((step, i) => (
+                <div key={i} className="band-msg">
+                  <span className="band-msg-sender">{step.agentName}</span>
+                  <div className="band-msg-bubble">
+                    <span className="band-msg-mention">@{step.to}</span>
+                    {" "}{step.message}
+                  </div>
+                </div>
+              ))}
             </div>
           ) : evaluation ? (
             <>
