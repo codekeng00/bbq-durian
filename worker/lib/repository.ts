@@ -50,6 +50,7 @@ type EvaluationRow = {
   provider: string;
   policy_sources_json: string;
   failure_reason: string | null;
+  contract_document: string | null;
   created_by: string;
   created_at: string;
 };
@@ -79,6 +80,7 @@ function toEvaluation(row: EvaluationRow): EvaluationRecord {
     provider: row.provider,
     policySources: parse(row.policy_sources_json, []),
     failureReason: row.failure_reason ?? undefined,
+    contractDocument: row.contract_document ?? undefined,
     createdBy: row.created_by,
     createdAt: row.created_at,
   };
@@ -126,8 +128,8 @@ const SELECT_DEAL = `
 const SELECT_EVALUATION = `
   SELECT id, deal_id, proposal_version, risk_score, profit_score,
     compliance_score, priority_score, compliance_notes_json, recommendation,
-    reason, mode, provider, policy_sources_json, failure_reason, created_by,
-    created_at
+    reason, mode, provider, policy_sources_json, failure_reason, contract_document,
+    created_by, created_at
   FROM evaluations
 `;
 
@@ -366,9 +368,9 @@ export async function createEvaluation(
     `INSERT INTO evaluations (
       id, organization_id, deal_id, proposal_version, risk_score, profit_score,
       compliance_score, priority_score, compliance_notes_json, recommendation,
-      reason, mode, provider, policy_sources_json, failure_reason, created_by,
-      created_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      reason, mode, provider, policy_sources_json, failure_reason, contract_document,
+      created_by, created_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   )
     .bind(
       evaluation.id,
@@ -386,6 +388,7 @@ export async function createEvaluation(
       evaluation.provider,
       JSON.stringify(evaluation.policySources),
       evaluation.failureReason ?? null,
+      evaluation.contractDocument ?? null,
       evaluation.createdBy,
       evaluation.createdAt,
     )

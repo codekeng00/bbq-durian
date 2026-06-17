@@ -40,6 +40,7 @@ export type Evaluation = {
   provider: string;
   policySources: string[];
   failureReason?: string;
+  contractDocument?: string;
   createdBy: string;
   createdAt: string;
 };

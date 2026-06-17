@@ -38,6 +38,7 @@ const BusinessState = Annotation.Root({
   evaluationMode: Annotation<"live_ai" | "rules_only">,
   evaluationProvider: Annotation<string>,
   evaluationFailure: Annotation<string | undefined>,
+  contractDocument: Annotation<string>,
   roomId: Annotation<string | undefined>,
   coordinationContext: Annotation<string>,
 });
@@ -56,6 +57,7 @@ export async function runBusinessGraph(
       mode: "live_ai" | "rules_only";
       provider: string;
       failureReason?: string;
+      contractDocument: string;
     }
 > {
   const room = await createBandRoom(env, [
@@ -96,6 +98,35 @@ export async function runBusinessGraph(
         provider: "featherless",
         output: parsed,
       });
+
+      const today = new Date().toISOString().slice(0, 10);
+      const contractDocument = await textCompletion(
+        env,
+        [
+          {
+            role: "system",
+            content: `You are DealMaker's Business Parsing Agent acting as a contract drafter. Generate a formal commercial contract in plain text based on the deal information provided. The contract must include these sections clearly labelled:
+
+1. CONTRACT TITLE (e.g. "COMMERCIAL SALES CONTRACT")
+2. CONTRACT DATE and CONTRACT NO.
+3. PARTIES — Seller details and Buyer details (name, contact, email)
+4. SCOPE OF WORK / DELIVERABLES — itemised list of products/services, quantities, specifications
+5. COMMERCIAL TERMS — unit price, total value, currency, payment terms (e.g. Net 30), invoice requirements
+6. DELIVERY & TIMELINE — delivery date, delivery location, shipping terms
+7. WARRANTIES & OBLIGATIONS — seller and buyer obligations
+8. GOVERNING LAW — applicable jurisdiction
+9. SIGNATURES — two signature blocks: Seller Representative and Buyer Representative, each with Name / Title / Date / Signature lines
+
+Write in formal legal language. Use the deal facts provided. Where information is missing, use reasonable placeholders in [square brackets]. Do not use JSON or markdown formatting — plain text only.`,
+          },
+          {
+            role: "user",
+            content: `Contract date: ${today}\nDeal facts: ${JSON.stringify(state.deal.extracted)}\nProposal email subject: ${state.deal.email?.subject ?? ""}\nProposal email body:\n${state.deal.email?.body ?? ""}\nParsed terms: ${JSON.stringify(parsed)}`,
+          },
+        ],
+        () => `COMMERCIAL SALES CONTRACT\n\nDate: ${today}\nContract No.: [AUTO-GENERATED]\n\nPARTIES\nSeller: [Seller Company]\nBuyer: ${parsed.clientName}\n\nSCOPE\n${parsed.obligations.join("\n")}\n\nCOMMERCIAL TERMS\nTotal Value: $${parsed.value.toLocaleString()}\nPayment Terms: ${parsed.requestedTerms.join(", ")}\n\nSIGNATURES\nSeller: _______________________\nBuyer: _______________________`,
+      );
+
       const parserMsg = await textCompletion(
         env,
         [
@@ -118,6 +149,7 @@ export async function runBusinessGraph(
         parsed,
         policy: knowledgeContext(rows),
         policySources: rows.map((row) => row.title),
+        contractDocument,
         roomId: room.id,
         coordinationContext,
       };
@@ -278,5 +310,6 @@ export async function runBusinessGraph(
     provider: result.evaluationProvider ?? "Rules engine",
     failureReason: result.evaluationFailure,
     roomId: result.roomId,
+    contractDocument: result.contractDocument ?? "",
   };
 }

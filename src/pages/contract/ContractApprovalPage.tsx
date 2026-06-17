@@ -157,18 +157,13 @@ export default function ContractApprovalPage() {
     }
   }
 
-  function downloadProposal() {
-    if (!deal?.email) return;
-    const content = [
-      `To: ${deal.email.to}`,
-      `Subject: ${deal.email.subject}`,
-      "",
-      deal.email.body,
-    ].join("\n");
+  function downloadContract() {
+    const content = evaluation?.contractDocument ?? "";
+    if (!content) return;
     const url = URL.createObjectURL(new Blob([content], { type: "text/plain" }));
     const anchor = document.createElement("a");
     anchor.href = url;
-    anchor.download = `${deal.extracted.clientName}-submitted-proposal.txt`;
+    anchor.download = `${deal?.extracted.clientName ?? "contract"}-commercial-contract.txt`;
     anchor.click();
     URL.revokeObjectURL(url);
   }
@@ -215,18 +210,36 @@ export default function ContractApprovalPage() {
       <div className="contract-grid">
         <section className="document-viewer">
           <div className="viewer-tools">
-            <button type="button" onClick={downloadProposal}>Download</button>
+            {evaluation?.contractDocument && (
+              <button type="button" onClick={downloadContract}>
+                Download Contract
+              </button>
+            )}
             <button type="button" onClick={() => window.print()}>
               Print / Save PDF
             </button>
           </div>
           <article className="document-paper">
-            <h2>SUBMITTED PROPOSAL</h2>
-            <p>To: {deal.email.to}</p>
-            <h3>{deal.email.subject}</h3>
-            {deal.email.body.split("\n").map((line, index) => (
-              <p key={`${index}-${line}`}>{line || " "}</p>
-            ))}
+            {evaluation?.contractDocument ? (
+              <>
+                <div className="contract-doc-badge">COMMERCIAL CONTRACT</div>
+                {evaluation.contractDocument.split("\n").map((line, i) => {
+                  const isHeading = /^[A-Z][A-Z\s\/&]{4,}[A-Z]$/.test(line.trim()) || /^\d+\.\s+[A-Z]/.test(line.trim());
+                  return isHeading
+                    ? <h3 key={i} className="contract-section-heading">{line}</h3>
+                    : <p key={i} className="contract-line">{line || " "}</p>;
+                })}
+              </>
+            ) : (
+              <>
+                <h2>SUBMITTED PROPOSAL</h2>
+                <p>To: {deal.email.to}</p>
+                <h3>{deal.email.subject}</h3>
+                {deal.email.body.split("\n").map((line, index) => (
+                  <p key={`${index}-${line}`}>{line || " "}</p>
+                ))}
+              </>
+            )}
           </article>
         </section>
 

@@ -409,6 +409,7 @@ async function api(request: Request, env: Env): Promise<Response> {
           provider: result.provider,
           policySources: result.policySources,
           failureReason: result.failureReason,
+          contractDocument: result.contractDocument,
           createdBy: user.id,
           createdAt: new Date().toISOString(),
         };
