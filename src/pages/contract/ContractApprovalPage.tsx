@@ -182,13 +182,7 @@ export default function ContractApprovalPage() {
 
       <div className="contract-grid">
         <section className="document-viewer">
-          <div className="viewer-tools">
-            {evaluation?.contractDocument && (
-              <button type="button" onClick={downloadContract}>
-                Download Contract
-              </button>
-            )}
-          </div>
+
           <article className="document-paper">
             {evaluation?.contractDocument ? (
               <>
