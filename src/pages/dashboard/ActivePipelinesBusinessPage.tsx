@@ -8,9 +8,10 @@ export default function ActivePipelinesBusinessPage() {
   const navigate = useNavigate();
   const { deals, currentUser, clearAllDeals } = useDemoData();
   const [clearing, setClearing] = useState(false);
+  const [confirmingClear, setConfirmingClear] = useState(false);
 
   async function handleClearAll() {
-    if (!window.confirm("Delete all deal data? This cannot be undone.")) return;
+    setConfirmingClear(false);
     setClearing(true);
     try {
       await clearAllDeals();
@@ -25,6 +26,15 @@ export default function ActivePipelinesBusinessPage() {
   const history = deals.filter(
     (deal) => deal.status === "approved" || deal.status === "rejected",
   );
+  const approved = history.filter((d) => d.status === "approved");
+  const rejected = history.filter((d) => d.status === "rejected");
+  const totalReviewed = history.length;
+
+  function fmtValue(n: number) {
+    if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+    if (n >= 1_000) return `${(n / 1_000).toFixed(0)}K`;
+    return n.toLocaleString();
+  }
 
   if (pending.length === 0 && history.length === 0) {
     return (
@@ -32,7 +42,9 @@ export default function ActivePipelinesBusinessPage() {
         <AppSidebar brandTo="/active-pipelines-business" />
         <main className="app-main pipeline-main">
           <header className="pipeline-heading">
-            <h1>Welcome back, {currentUser?.name}</h1>
+            <div className="pipeline-heading-copy">
+              <h1>Welcome back, {currentUser?.name}</h1>
+            </div>
           </header>
           <EmptyPipelineState titleId="business-empty-title" />
         </main>
@@ -45,19 +57,46 @@ export default function ActivePipelinesBusinessPage() {
       <AppSidebar brandTo="/active-pipelines-business" />
       <main className="app-main pipeline-main">
         <header className="pipeline-heading">
-          <h1>Welcome back, {currentUser?.name}</h1>
-          <p className="review-notice">
-            {pending.length} proposal{pending.length === 1 ? "" : "s"} awaiting review
-          </p>
+          <div className="pipeline-heading-copy">
+            <h1>Welcome back, {currentUser?.name}</h1>
+            {pending.length > 0 && (
+              <p className="review-notice">
+                {pending.length} proposal{pending.length === 1 ? "" : "s"} awaiting review
+              </p>
+            )}
+          </div>
           <button
             type="button"
             className="clear-all-btn"
             disabled={clearing}
-            onClick={handleClearAll}
+            onClick={() => setConfirmingClear(true)}
           >
             {clearing ? "Clearing..." : "Clear All Data"}
           </button>
         </header>
+
+        <div className="pipeline-stats">
+          <div className="stat-card">
+            <div className="stat-card-label">Pending Review</div>
+            <div className="stat-card-value amber">{pending.length}</div>
+            <div className="stat-card-sub">proposals to action</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-card-label">Approved</div>
+            <div className="stat-card-value green">{approved.length}</div>
+            <div className="stat-card-sub">deals approved</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-card-label">Rejected</div>
+            <div className="stat-card-value red">{rejected.length}</div>
+            <div className="stat-card-sub">returned for revision</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-card-label">Total Reviewed</div>
+            <div className="stat-card-value">{fmtValue(totalReviewed)}</div>
+            <div className="stat-card-sub">decisions made</div>
+          </div>
+        </div>
 
         <section className="pipeline-card">
           <h2>Pending Review</h2>
@@ -151,6 +190,23 @@ export default function ActivePipelinesBusinessPage() {
           </section>
         )}
         <div className="pipeline-rule"></div>
+
+        {confirmingClear && (
+          <div className="confirm-overlay" onClick={() => setConfirmingClear(false)}>
+            <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>
+              <h3>Clear All Data?</h3>
+              <p>This will permanently delete all deal data and cannot be undone.</p>
+              <div className="confirm-modal-actions">
+                <button className="confirm-cancel" type="button" onClick={() => setConfirmingClear(false)}>
+                  Cancel
+                </button>
+                <button className="confirm-danger" type="button" disabled={clearing} onClick={handleClearAll}>
+                  {clearing ? "Clearing..." : "Delete All"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </>
   );

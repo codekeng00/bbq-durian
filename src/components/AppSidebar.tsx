@@ -21,7 +21,7 @@ export default function AppSidebar({
   return (
     <aside className={className}>
       <Link className="app-brand" to={brandTo}>
-        <img src="/assets/dashboard-logo.svg" alt="" />
+        <img src="/assets/logo.svg" alt="" />
         <span>
           <strong>DealMaker</strong>
           <small>AI Intelligence</small>
