@@ -48,7 +48,7 @@ export default function AnalysisChatPage() {
   }, [dealId, loadDeal]);
 
   if (loading) {
-    return <main className="page-message">Loading proposal...</main>;
+    return <main className="page-message">Loading submission...</main>;
   }
 
   if (!deal || !deal.email) {
@@ -112,16 +112,6 @@ export default function AnalysisChatPage() {
     }
   }
 
-  function downloadProposal() {
-    if (!deal?.email) return;
-    const content = [`To: ${deal.email.to}`, `Subject: ${subject}`, "", body].join("\n");
-    const url = URL.createObjectURL(new Blob([content], { type: "text/plain" }));
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = `${deal.extracted.clientName ?? "proposal"}-proposal.txt`;
-    anchor.click();
-    URL.revokeObjectURL(url);
-  }
 
   function downloadContract() {
     if (!contractDocument) return;
@@ -133,46 +123,35 @@ export default function AnalysisChatPage() {
     URL.revokeObjectURL(url);
   }
 
+  const statusLabel = isApproved
+    ? "APPROVED"
+    : deal.status === "pending_business_review"
+      ? "IN REVIEW"
+      : deal.status === "rejected"
+        ? "RETURNED"
+        : "DRAFT";
+
+  const statusClass = isApproved
+    ? "ready"
+    : deal.status === "pending_business_review"
+      ? "analysis"
+      : deal.status === "rejected"
+        ? "high"
+        : "";
+
   return (
     <main className="email-chat-layout">
       <section className="email-editor">
         <header className="mini-brand">
-          DealMaker
-          <Link to="/active-pipelines-sales">Back to Pipelines</Link>
+          <Link className="workspace-brand-logo" to="/active-pipelines-sales">
+            <img src="/assets/logo.svg" alt="" />
+            <strong>DealMaker</strong>
+          </Link>
+          <Link className="workspace-back" to="/active-pipelines-sales">
+            <img src="/assets/workspace-back.svg" alt="" />
+            Back to Pipelines
+          </Link>
         </header>
-
-        {deal.status === "rejected" && deal.rejectReason && (
-          <div className="reject-banner">
-            <strong>Returned by Business:</strong> {deal.rejectReason}
-          </div>
-        )}
-
-        {readOnly && (
-          <div className="info-banner">
-            This proposal is locked while Business reviews version {deal.version}.
-            Withdraw it before making changes.
-          </div>
-        )}
-
-        {deal.validationIssues.length > 0 && (
-          <div className="warning-banner">
-            <strong>Proposal validation warnings</strong>
-            <ul>
-              {deal.validationIssues.map((issue) => <li key={issue}>{issue}</li>)}
-            </ul>
-          </div>
-        )}
-
-        {deal.validationMode === "rules_only" && (
-          <div className="warning-banner">
-            <strong>Rules-only proposal validation</strong>
-            <p>
-              Live AI validation was unavailable. Review the complete proposal
-              manually before submission.
-            </p>
-            {deal.validationFailure && <small>{deal.validationFailure}</small>}
-          </div>
-        )}
 
         {error && <p className="error-banner" role="alert">{error}</p>}
 
@@ -183,15 +162,7 @@ export default function AnalysisChatPage() {
                 <h1>{deal.extracted.clientName}</h1>
                 <p>{deal.extracted.description}</p>
               </div>
-              <span className="pill pill-status">
-                {isApproved
-                  ? "APPROVED"
-                  : deal.status === "pending_business_review"
-                    ? "IN REVIEW"
-                    : deal.status === "rejected"
-                      ? "RETURNED"
-                      : "DRAFT"}
-              </span>
+              <span className={`status ${statusClass}`}>{statusLabel}</span>
             </div>
           </header>
 
@@ -217,7 +188,7 @@ export default function AnalysisChatPage() {
           ) : (
             <>
               <div className="email-body">
-                <p><strong>To:</strong> {deal.email.to}</p>
+                <p><strong>To:</strong> Business Review Team</p>
                 <label htmlFor="proposal-subject"><strong>Subject</strong></label>
                 <input
                   id="proposal-subject"
@@ -226,20 +197,16 @@ export default function AnalysisChatPage() {
                   onChange={(event) => setSubject(event.target.value)}
                   className="email-input"
                 />
-                <label htmlFor="proposal-body"><strong>Proposal message</strong></label>
+                <label htmlFor="proposal-body"><strong>Submission report</strong></label>
                 <textarea
                   id="proposal-body"
                   value={body}
                   readOnly={readOnly}
                   onChange={(event) => setBody(event.target.value)}
-                  rows={14}
-                  className="email-textarea"
+                  className="email-textarea email-textarea--fill"
                 />
               </div>
               <div className="send-row action-row">
-                <button type="button" onClick={downloadProposal}>
-                  Download Proposal
-                </button>
                 {readOnly ? (
                   <button
                     className="primary-button"
@@ -283,6 +250,70 @@ export default function AnalysisChatPage() {
           )}
         </article>
       </section>
+
+      {/* Right panel: deal summary + validation */}
+      <aside className="deal-sidebar">
+        <div className="deal-sidebar-section">
+          <h3 className="deal-sidebar-title">Deal Summary</h3>
+          {deal.extracted.value && (
+            <div className="deal-meta-hero">
+              <div className="deal-meta-hero-label">Pipeline Value</div>
+              <div className="deal-meta-hero-value">
+                ${deal.extracted.value.toLocaleString()}
+              </div>
+              {deal.extracted.clientName && (
+                <div className="deal-meta-hero-client">{deal.extracted.clientName}</div>
+              )}
+            </div>
+          )}
+          <dl className="deal-meta">
+            <div className="deal-meta-row">
+              <dt>Client</dt>
+              <dd>{deal.extracted.clientName ?? "—"}</dd>
+            </div>
+            <div className="deal-meta-row">
+              <dt>Decision Maker</dt>
+              <dd>{deal.extracted.decisionMaker ?? "—"}</dd>
+            </div>
+            <div className="deal-meta-row">
+              <dt>Contact</dt>
+              <dd>{deal.extracted.contactEmail ?? "—"}</dd>
+            </div>
+            <div className="deal-meta-row">
+              <dt>Version</dt>
+              <dd>v{deal.version}</dd>
+            </div>
+          </dl>
+        </div>
+
+        {deal.status === "rejected" && deal.rejectReason && (
+          <div className="deal-sidebar-section deal-sidebar-alert deal-sidebar-alert--red">
+            <h3 className="deal-sidebar-title">Returned by Business</h3>
+            <p>{deal.rejectReason}</p>
+          </div>
+        )}
+
+        {readOnly && deal.status !== "rejected" && (
+          <div className="deal-sidebar-section deal-sidebar-alert deal-sidebar-alert--blue">
+            <h3 className="deal-sidebar-title">Locked for Review</h3>
+            <p>This submission is locked while the Business team reviews version {deal.version}. Withdraw it to make further changes.</p>
+          </div>
+        )}
+
+        {(deal.validationIssues.length > 0 || deal.validationMode === "rules_only") && (
+          <div className="deal-sidebar-section deal-sidebar-alert deal-sidebar-alert--amber">
+            <h3 className="deal-sidebar-title">Validation Warnings</h3>
+            {deal.validationMode === "rules_only" && (
+              <p>Live AI validation was unavailable. Please review the submission manually before sending to Business.</p>
+            )}
+            {deal.validationIssues.length > 0 && (
+              <ul className="deal-sidebar-issues">
+                {deal.validationIssues.map((issue) => <li key={issue}>{issue}</li>)}
+              </ul>
+            )}
+          </div>
+        )}
+      </aside>
     </main>
   );
 }

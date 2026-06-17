@@ -25,6 +25,12 @@ export default function AnalysisWorkspacePage() {
   const [samplePreview, setSamplePreview] = useState<string | null>(null);
   const [agentSteps, setAgentSteps] = useState<{ agentName: string; to: string; message: string }[]>([]);
   const [emailResult, setEmailResult] = useState<GenerateEmailResult | null>(null);
+  const [toast, setToast] = useState("");
+
+  function showToast(msg: string) {
+    setToast(msg);
+    setTimeout(() => setToast(""), 3000);
+  }
   const [pendingFinishArgs, setPendingFinishArgs] = useState<{
     info: ExtractedInfo;
     chatHistory: ChatMessage[];
@@ -171,7 +177,10 @@ export default function AnalysisWorkspacePage() {
     <main className="workspace">
       <section className="workspace-left">
         <header className="workspace-brand">
-          <strong>DealMaker</strong>
+          <Link className="workspace-brand-logo" to="/active-pipelines-sales">
+            <img src="/assets/logo.svg" alt="" />
+            <strong>DealMaker</strong>
+          </Link>
           <Link className="workspace-back" to="/active-pipelines-sales">
             <img src="/assets/workspace-back.svg" alt="" />
             Back
@@ -179,7 +188,7 @@ export default function AnalysisWorkspacePage() {
         </header>
         <div className="workspace-intro">
           <h1>Proposal Workspace</h1>
-          <p>Upload a plain-text sales conversation to create a reviewable proposal.</p>
+          <p>Analyse a sales conversation and let DealMaker draft your proposal.</p>
         </div>
 
         {error && <p className="error-banner" role="alert">{error}</p>}
@@ -202,17 +211,21 @@ export default function AnalysisWorkspacePage() {
             onChange={handleFileInput}
           />
           <button
-            className="browse-button"
+            className="browse-button browse-button--muted"
             type="button"
-            disabled={phase !== "upload"}
-            onClick={() => fileInputRef.current?.click()}
+            onClick={() => showToast("File upload is not available in the demo version.")}
           >
             <img src="/assets/workspace-plus.svg" alt="" />
             Select Text File
           </button>
           {devMode && (
-            <button type="button" onClick={loadSample} className="sample-link">
-              Use local training sample
+            <button
+              type="button"
+              onClick={loadSample}
+              className="sample-link sample-link--primary"
+              disabled={phase !== "upload"}
+            >
+              ✦ Use local sample for demo
             </button>
           )}
         </section>
@@ -256,8 +269,8 @@ export default function AnalysisWorkspacePage() {
               {phase === "upload" && "Waiting for conversation text"}
               {phase === "analyzing" && "Extracting supported facts"}
               {phase === "chat" && "Collecting required business details"}
-              {phase === "generating" && "Drafting and validating proposal"}
-              {phase === "ready" && "Proposal ready — review when you're set"}
+              {phase === "generating" && "Drafting and validating deal submission"}
+              {phase === "ready" && "Submission ready — review when you're set"}
             </small>
           </div>
         </header>
@@ -315,7 +328,7 @@ export default function AnalysisWorkspacePage() {
           {phase === "ready" && (
             <article>
               <div className="ai-bubble">
-                All agents have finished deliberating. The proposal is ready for your review.
+                All agents have finished deliberating. The deal submission report is ready for your review.
               </div>
               <p className="agent-meta"><b className="purple">ASSISTANT</b></p>
             </article>
@@ -388,6 +401,7 @@ export default function AnalysisWorkspacePage() {
           </div>
         </div>
       )}
+      {toast && <div className="sidebar-toast" role="status">{toast}</div>}
     </main>
   );
 }

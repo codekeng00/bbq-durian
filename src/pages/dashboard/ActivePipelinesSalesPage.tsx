@@ -24,8 +24,17 @@ export default function ActivePipelinesSalesPage() {
   const { deals, currentUser, archiveDeal, clearAllDeals } = useDemoData();
   const [busyId, setBusyId] = useState("");
   const [clearing, setClearing] = useState(false);
+  const [confirmingClear, setConfirmingClear] = useState(false);
   const active = deals.filter((deal) => deal.status !== "approved");
   const completed = deals.filter((deal) => deal.status === "approved");
+  const submitted = deals.filter((d) => d.status === "pending_business_review");
+  const totalValue = deals.reduce((s, d) => s + (d.extracted.value ?? 0), 0);
+
+  function fmtValue(n: number) {
+    if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
+    if (n >= 1_000) return `$${(n / 1_000).toFixed(0)}K`;
+    return `$${n.toLocaleString()}`;
+  }
 
   function openDeal(deal: Deal) {
     if (deal.status === "approved") {
@@ -36,7 +45,7 @@ export default function ActivePipelinesSalesPage() {
   }
 
   async function handleClearAll() {
-    if (!window.confirm("Delete all deal data? This cannot be undone.")) return;
+    setConfirmingClear(false);
     setClearing(true);
     try {
       await clearAllDeals();
@@ -62,7 +71,9 @@ export default function ActivePipelinesSalesPage() {
         <AppSidebar brandTo="/active-pipelines-sales" />
         <main className="app-main pipeline-main">
           <header className="pipeline-heading">
-            <h1>Welcome back, {currentUser?.name}</h1>
+            <div className="pipeline-heading-copy">
+              <h1>Welcome back, {currentUser?.name}</h1>
+            </div>
           </header>
           <EmptyPipelineState
             titleId="sales-empty-title"
@@ -78,19 +89,46 @@ export default function ActivePipelinesSalesPage() {
       <AppSidebar brandTo="/active-pipelines-sales" />
       <main className="app-main pipeline-main">
         <header className="pipeline-heading">
-          <h1>Welcome back, {currentUser?.name}</h1>
-          <p className="review-notice">
-            {active.length} active opportunit{active.length === 1 ? "y" : "ies"}
-          </p>
+          <div className="pipeline-heading-copy">
+            <h1>Welcome back, {currentUser?.name}</h1>
+            {active.length > 0 && (
+              <p className="review-notice">
+                {active.length} active opportunit{active.length === 1 ? "y" : "ies"}
+              </p>
+            )}
+          </div>
           <button
             type="button"
             className="clear-all-btn"
             disabled={clearing}
-            onClick={handleClearAll}
+            onClick={() => setConfirmingClear(true)}
           >
             {clearing ? "Clearing..." : "Clear All Data"}
           </button>
         </header>
+
+        <div className="pipeline-stats">
+          <div className="stat-card">
+            <div className="stat-card-label">Active</div>
+            <div className="stat-card-value accent">{active.length}</div>
+            <div className="stat-card-sub">proposals in progress</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-card-label">Submitted</div>
+            <div className="stat-card-value amber">{submitted.length}</div>
+            <div className="stat-card-sub">awaiting business review</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-card-label">Approved</div>
+            <div className="stat-card-value green">{completed.length}</div>
+            <div className="stat-card-sub">agreements signed</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-card-label">Pipeline Value</div>
+            <div className="stat-card-value">{fmtValue(totalValue)}</div>
+            <div className="stat-card-sub">total across all deals</div>
+          </div>
+        </div>
 
         <section className="pipeline-card">
           <h2>Active Work</h2>
@@ -121,6 +159,23 @@ export default function ActivePipelinesSalesPage() {
         >
           + New Proposal
         </button>
+
+        {confirmingClear && (
+          <div className="confirm-overlay" onClick={() => setConfirmingClear(false)}>
+            <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>
+              <h3>Clear All Data?</h3>
+              <p>This will permanently delete all deal data and cannot be undone.</p>
+              <div className="confirm-modal-actions">
+                <button className="confirm-cancel" type="button" onClick={() => setConfirmingClear(false)}>
+                  Cancel
+                </button>
+                <button className="confirm-danger" type="button" disabled={clearing} onClick={handleClearAll}>
+                  {clearing ? "Clearing..." : "Delete All"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </>
   );

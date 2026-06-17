@@ -5,13 +5,10 @@ import type { Deal } from "../../data/types";
 
 export default function ContractReceivedPage() {
   const [params] = useSearchParams();
-  const { currentUser, loadDeal, signAgreement } = useDemoData();
+  const { loadDeal } = useDemoData();
   const dealId = params.get("dealId") ?? "";
   const [deal, setDeal] = useState<Deal>();
-  const [typedName, setTypedName] = useState(currentUser?.name ?? "");
-  const [consent, setConsent] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -47,21 +44,6 @@ export default function ContractReceivedPage() {
         </p>
       </main>
     );
-  }
-
-  async function handleSign() {
-    if (!deal || busy) return;
-    setBusy(true);
-    setError("");
-    try {
-      const updated = await signAgreement(deal.id, deal.version, typedName);
-      setDeal(updated);
-      setConsent(false);
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Signature failed.");
-    } finally {
-      setBusy(false);
-    }
   }
 
   function downloadAgreement() {
@@ -143,45 +125,9 @@ export default function ContractReceivedPage() {
 
           <div className="document-actions">
             <button type="button" onClick={downloadAgreement}>
-              Download Draft
-            </button>
-            <button type="button" onClick={() => window.print()}>
-              Print / Save PDF
+              Download
             </button>
           </div>
-
-          {deal.contractStatus === "draft" && (
-            <section className="signature-card">
-              <h3>Record Internal Electronic Signature</h3>
-              <p>
-                This records your authenticated internal approval. It does not
-                replace a required client counter-signature.
-              </p>
-              <label className="form-field">
-                <span>Type your full legal name</span>
-                <input
-                  value={typedName}
-                  onChange={(event) => setTypedName(event.target.value)}
-                />
-              </label>
-              <label className="acknowledge-option">
-                <input
-                  type="checkbox"
-                  checked={consent}
-                  onChange={(event) => setConsent(event.target.checked)}
-                />
-                I consent to this electronic signature record.
-              </label>
-              <button
-                className="primary-button"
-                type="button"
-                disabled={busy || typedName.trim().length < 2 || !consent}
-                onClick={handleSign}
-              >
-                {busy ? "Recording..." : "Record Signature"}
-              </button>
-            </section>
-          )}
         </aside>
       </div>
     </main>

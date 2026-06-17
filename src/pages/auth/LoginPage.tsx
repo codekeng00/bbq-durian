@@ -4,13 +4,21 @@ import { DEMO_USERS } from "../../data/users";
 import { useDemoData } from "../../hooks/useDemoData";
 import type { Team } from "../../data/types";
 
+const DEMO_TOAST = "This feature is not available in the demo version.";
+
 export default function LoginPage() {
   const [role, setRole] = useState<Team>("sales");
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [toast, setToast] = useState("");
   const navigate = useNavigate();
   const { login } = useDemoData();
+
+  function showToast() {
+    setToast(DEMO_TOAST);
+    setTimeout(() => setToast(""), 3000);
+  }
 
   const email = DEMO_USERS[role].email;
 
@@ -34,29 +42,52 @@ export default function LoginPage() {
     <div className="login-shell">
       <header className="login-topbar">
         <Link className="login-brand" to="/">
+          <img src="/assets/logo.svg" alt="" aria-hidden="true" />
           DealMaker
         </Link>
         <nav className="support-nav" aria-label="Support">
-          <span>Need assistance?</span>
-          <a href="mailto:support@dealmaker.example">Contact Support</a>
+          <a href="mailto:robinhoo990512@gmail.com">Need assistance?</a>
+          <a href="mailto:robinhoo990512@gmail.com">Contact Support</a>
         </nav>
       </header>
 
       <main className="login-layout">
         <section className="login-hero" aria-labelledby="hero-title">
+          <img
+            className="hero-bg"
+            src="/assets/collaboration.png"
+            alt=""
+            aria-hidden="true"
+          />
+          <div className="hero-overlay" />
           <div className="hero-copy">
-            <h1 id="hero-title">Know More. Move Faster. Sell Better.</h1>
+            <div className="hero-badge">
+              <span className="hero-badge-dot" />
+              AI-Powered Revenue Intelligence
+            </div>
+            <h1 id="hero-title">
+              Know More. Move Faster.<br /><em>Sell Better.</em>
+            </h1>
             <p>
-              DealMaker synchronizes your entire revenue pipeline, from initial CRM lead intake
-              to AI-driven proposal generation and final human verification.
+              Turn sales conversations into signed contracts — DealMaker's AI agents
+              extract deal intent, build proposals, and generate formal contracts ready
+              for business review and approval.
             </p>
+            <div className="hero-stats">
+              <div>
+                <span className="hero-stat-value">4×</span>
+                <span className="hero-stat-label">Faster Proposals</span>
+              </div>
+              <div>
+                <span className="hero-stat-value">98%</span>
+                <span className="hero-stat-label">Compliance Rate</span>
+              </div>
+              <div>
+                <span className="hero-stat-value">7 AI</span>
+                <span className="hero-stat-label">Agents On-Duty</span>
+              </div>
+            </div>
           </div>
-          <figure className="hero-visual">
-            <img
-              src="/assets/collaboration.png"
-              alt="Business and sales teams connected through an AI-enabled digital network"
-            />
-          </figure>
         </section>
 
         <section className="login-panel" aria-labelledby="login-title">
@@ -73,8 +104,11 @@ export default function LoginPage() {
                 aria-pressed={role === "sales"}
                 onClick={() => setRole("sales")}
               >
-                <img src="/assets/sales-role.svg" alt="" aria-hidden="true" />
-                Sales Executive
+                <span className="role-button-icon">
+                  <img src="/assets/sales-role.svg" alt="" aria-hidden="true" />
+                </span>
+                <span className="role-button-name">Sales Executive</span>
+                <span className="role-button-desc">Proposals & pipelines</span>
               </button>
               <button
                 className={`role-button ${role === "business" ? "is-active" : ""}`}
@@ -82,8 +116,11 @@ export default function LoginPage() {
                 aria-pressed={role === "business"}
                 onClick={() => setRole("business")}
               >
-                <img src="/assets/business-role.svg" alt="" aria-hidden="true" />
-                Business Admin
+                <span className="role-button-icon">
+                  <img src="/assets/business-role.svg" alt="" aria-hidden="true" />
+                </span>
+                <span className="role-button-name">Business Admin</span>
+                <span className="role-button-desc">Reviews & approvals</span>
               </button>
             </div>
 
@@ -101,7 +138,7 @@ export default function LoginPage() {
               <div className="form-field">
                 <span className="label-row">
                   <label htmlFor="password">Password</label>
-                  <a href="#">Forgot?</a>
+                  <a href="#" onClick={(e) => { e.preventDefault(); showToast(); }}>Forgot?</a>
                 </span>
                 <span className="password-control">
                   <input
@@ -122,12 +159,12 @@ export default function LoginPage() {
                   </button>
                 </span>
               </div>
-              <label className="remember-option">
-                <input type="checkbox" name="remember" />
+              <label className="remember-option" onClick={(e) => { e.preventDefault(); showToast(); }} style={{ cursor: "pointer" }}>
+                <input type="checkbox" name="remember" readOnly checked={false} onChange={() => {}} />
                 Remember this session for 30 days
               </label>
               <button className="authenticate-button" type="submit" disabled={submitting}>
-                {submitting ? "Authenticating..." : "Authenticate"}
+                {submitting ? "Signing in..." : "Sign In"}
                 <img src="/assets/arrow-right.svg" alt="" aria-hidden="true" />
               </button>
               {error && (
@@ -138,19 +175,29 @@ export default function LoginPage() {
             </form>
 
             <p className="account-access">
-              New to DealMaker? <a href="#">Request Account Access</a>
+              New to DealMaker? <a href="#" onClick={(e) => { e.preventDefault(); showToast(); }}>Request Account Access</a>
             </p>
           </div>
         </section>
       </main>
 
+      {toast && (
+        <div className="login-toast" role="status">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <circle cx="8" cy="8" r="7.5" stroke="currentColor" strokeOpacity="0.4"/>
+            <path d="M8 5v3.5M8 10.5v.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+          </svg>
+          {toast}
+        </div>
+      )}
+
       <footer className="login-footer">
         <span>
           <img src="/assets/agent.svg" alt="" aria-hidden="true" />
-          Powered by DealMaker AI Agent Orchestration
+          Powered by bbq-durian
         </span>
         <i aria-hidden="true">|</i>
-        <span>v2.4.0-Enterprise</span>
+        <span>v1.0.0</span>
       </footer>
     </div>
   );

@@ -171,6 +171,7 @@ export async function textCompletion(
   env: Env,
   messages: Message[],
   fallback: () => string,
+  maxTokens = 300,
 ): Promise<string> {
   const config: ProviderConfig = {
     apiKey: env.FEATHERLESS_API_KEY,
@@ -191,7 +192,7 @@ export async function textCompletion(
       body: JSON.stringify({
         model: config.model,
         temperature: 0.6,
-        max_tokens: 300,
+        max_tokens: maxTokens,
         messages,
       }),
     });
