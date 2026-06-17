@@ -122,7 +122,7 @@ Write in formal legal language. Use the deal facts provided. Where information i
           },
           {
             role: "user",
-            content: `Contract date: ${today}\nSeller company: ${context.organizationName}\nSeller representative: ${context.reviewerName}\nDeal facts: ${JSON.stringify(state.deal.extracted)}\nProposal email subject: ${state.deal.email?.subject ?? ""}\nProposal email body:\n${state.deal.email?.body ?? ""}\nParsed terms: ${JSON.stringify(parsed)}`,
+            content: `Contract date: ${today}\nSeller company: ${context.organizationName}\nSeller representative: ${context.reviewerName}\nDeal facts: ${JSON.stringify(state.deal.extracted)}\nProposal email subject: ${state.deal.email?.subject ?? ""}\nProposal email body:\n${state.deal.email?.body ?? ""}\nParsed terms: ${JSON.stringify(parsed)}\n\n<sales_conversation>\n${state.deal.rawConversation}\n</sales_conversation>`,
           },
         ],
         () => `COMMERCIAL SALES CONTRACT\n\nDate: ${today}\nContract No.: [AUTO-GENERATED]\n\nPARTIES\nSeller: ${context.organizationName}\nSeller Representative: ${context.reviewerName}\nBuyer: ${parsed.clientName}\nBuyer Contact: ${state.deal.extracted.contactEmail ?? "[Not provided]"}\n\nSCOPE\n${parsed.obligations.join("\n")}\n\nCOMMERCIAL TERMS\nTotal Value: $${parsed.value.toLocaleString()}\nPayment Terms: ${parsed.requestedTerms.join(", ")}\n\nSIGNATURES\nSeller Representative: _______________________\nBuyer Representative: _______________________`,
