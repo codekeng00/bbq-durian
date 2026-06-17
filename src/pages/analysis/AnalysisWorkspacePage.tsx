@@ -291,27 +291,25 @@ export default function AnalysisWorkspacePage() {
           ))}
 
           {(phase === "generating" || phase === "ready") && agentSteps.map((step, i) => (
-            <article key={i}>
-              <div className="ai-bubble agent-step-bubble">
-                <span className="agent-step-name">
-                  {step.agentName} <span className="agent-step-arrow">→</span>{" "}
-                  <span className="agent-step-to">@{step.to}</span>
-                </span>
-                <span>{step.message}</span>
+            <div key={i} className="band-msg">
+              <span className="band-msg-sender">{step.agentName}</span>
+              <div className="band-msg-bubble">
+                <span className="band-msg-mention">@{step.to}</span>
+                {" "}{step.message}
               </div>
-              <p className="agent-meta"><b className="purple">AGENT</b></p>
-            </article>
+            </div>
           ))}
 
           {phase === "generating" && (
-            <article>
-              <div className="ai-bubble agent-step-pending">
+            <div className="band-msg band-msg--pending">
+              <span className="band-msg-sender">
+                {agentSteps.length === 0 ? "Pipeline" : agentSteps[agentSteps.length - 1]?.agentName}
+              </span>
+              <div className="band-msg-bubble band-msg-bubble--pending">
                 <span className="agent-typing"><span /><span /><span /></span>
-                {agentSteps.length === 0
-                  ? "Starting agent pipeline..."
-                  : "Next agent working..."}
+                <span>{agentSteps.length === 0 ? "Starting up..." : "Thinking..."}</span>
               </div>
-            </article>
+            </div>
           )}
 
           {phase === "ready" && (
