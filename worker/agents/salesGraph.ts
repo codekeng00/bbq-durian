@@ -138,7 +138,7 @@ export async function runSalesGraph(
   env: Env,
   extracted: ExtractedInfo,
   rawConversation = "",
-  workflowContext: { organizationId: string; dealId?: string },
+  workflowContext: { organizationId: string; dealId?: string; salespersonName?: string },
   emit: AgentEmit = () => {},
 ): Promise<{
   email: Email;
@@ -231,6 +231,7 @@ export async function runSalesGraph(
       const client = state.extracted.clientName ?? "the client";
       const decisionMaker = state.extracted.decisionMaker ?? "not specified";
       const value = state.extracted.value ?? 0;
+      const senderName = workflowContext.salespersonName ?? "Sales Team";
       const email = await structuredCompletion(
         env,
         EmailSchema,
@@ -238,7 +239,7 @@ export async function runSalesGraph(
           {
             role: "system",
             content:
-              'You are DealMaker\'s Sales Construction Agent. Your task is to draft an internal deal submission report from the salesperson to the Business Review Team, requesting contract approval.\n\nThis is an INTERNAL document — it is NOT sent to the client. The tone should be clear, factual, and professional, like a colleague briefing a manager.\n\nGuidelines:\n- Address it to the Business Review Team (not the client).\n- Open with a brief one-line summary: deal name, client, and requested action (e.g. "Requesting contract approval for [Client] — [Value]").\n- Provide a structured deal overview: client background, deal scope, negotiated value, delivery timeline, payment terms.\n- Note the client decision maker and contact details.\n- Summarise any key points from the sales conversation that the business team should be aware of (commitments made, client concerns, risk factors).\n- End with a clear request: specify what approval or action is needed from the business team.\n- Keep it concise and factual — no marketing language, no customer-facing copy.\n- Only include facts supported by the conversation or internal knowledge.\n\nThe "to" field must be set to "business-review@dealmaker.internal".\n\nReturn exactly {"to":"string","subject":"string","body":"string"}.',
+              `You are DealMaker's Sales Construction Agent. Your task is to draft an internal deal submission report from the salesperson to the Business Review Team, requesting contract approval.\n\nThis is an INTERNAL document — it is NOT sent to the client. The tone should be clear, factual, and professional, like a colleague briefing a manager.\n\nGuidelines:\n- Address it to the Business Review Team (not the client).\n- Open with a brief one-line summary: deal name, client, and requested action (e.g. "Requesting contract approval for [Client] — [Value]").\n- Provide a structured deal overview: client background, deal scope, negotiated value, delivery timeline, payment terms.\n- Note the client decision maker and contact details.\n- Summarise any key points from the sales conversation that the business team should be aware of (commitments made, client concerns, risk factors).\n- End with a clear request: specify what approval or action is needed from the business team.\n- Sign off with the salesperson's name: "${senderName}".\n- Keep it concise and factual — no marketing language, no customer-facing copy.\n- Only include facts supported by the conversation or internal knowledge.\n\nThe "to" field must be set to "business-review@dealmaker.internal".\n\nReturn exactly {"to":"string","subject":"string","body":"string"}.`,
           },
           {
             role: "user",
@@ -265,7 +266,7 @@ export async function runSalesGraph(
             `REQUESTED ACTION`,
             `Please review the above deal details and issue the commercial contract for this engagement. Let me know if any additional information is required.`,
             "",
-            `Submitted by: Sales Team`,
+            `Submitted by: ${senderName}`,
           ].join("\n"),
         }),
       );
