@@ -296,7 +296,7 @@ async function api(request: Request, env: Env): Promise<Response> {
           body.info,
           body.rawConversation,
           { organizationId: user.organizationId },
-          (agentName, stage, summary) => emit("agent_step", { agentName, stage, summary }),
+          (agentName, to, message) => emit("agent_step", { agentName, to, message }),
         );
         emit("done", result);
       } catch (err) {
