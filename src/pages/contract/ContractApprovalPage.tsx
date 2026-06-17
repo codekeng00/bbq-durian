@@ -130,16 +130,6 @@ export default function ContractApprovalPage() {
     }
   }
 
-  function downloadContract() {
-    const content = evaluation?.contractDocument ?? "";
-    if (!content) return;
-    const url = URL.createObjectURL(new Blob([content], { type: "text/plain" }));
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = `${deal?.extracted.clientName ?? "contract"}-commercial-contract.txt`;
-    anchor.click();
-    URL.revokeObjectURL(url);
-  }
 
   return (
     <main className="contract-shell">
