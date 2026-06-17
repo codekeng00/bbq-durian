@@ -1284,3 +1284,10 @@ button.sidebar-nav-item {
 .evaluation-aside-stream { display: flex; flex-direction: column; gap: 0; margin-bottom: 12px; }
 .pre-review-prompt { display: flex; flex-direction: column; gap: 14px; padding: 18px; background: var(--blue-pale); border: 1px solid #d3e4fe; border-radius: 6px; }
 .pre-review-prompt p { font-size: 13px; color: var(--muted); line-height: 1.6; margin: 0; }
+.submission-email { display: flex; flex-direction: column; height: 100%; }
+.submission-email-header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
+.submission-email-field { display: grid; grid-template-columns: 64px 1fr; gap: 8px; font-size: 13px; align-items: baseline; }
+.submission-email-field--subject { margin-top: 4px; padding-top: 10px; border-top: 1px solid var(--border); font-weight: 600; }
+.submission-email-label { font-size: 11px; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase; color: var(--muted); }
+.submission-email-body { padding: 24px; flex: 1; overflow-y: auto; }
+.submission-email-body p { font-size: 13px; line-height: 1.7; margin: 0 0 2px; color: var(--ink); }

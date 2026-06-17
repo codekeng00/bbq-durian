@@ -203,14 +203,27 @@ export default function ContractApprovalPage() {
                 })}
               </>
             ) : (
-              <>
-                <h2>DEAL SUBMISSION REPORT</h2>
-                <p>To: Business Review Team</p>
-                <h3>{deal.email.subject}</h3>
-                {deal.email.body.split("\n").map((line, index) => (
-                  <p key={`${index}-${line}`}>{line || " "}</p>
-                ))}
-              </>
+              <div className="submission-email">
+                <div className="submission-email-header">
+                  <div className="submission-email-field">
+                    <span className="submission-email-label">From</span>
+                    <span>Sales Team</span>
+                  </div>
+                  <div className="submission-email-field">
+                    <span className="submission-email-label">To</span>
+                    <span>Business Review Team</span>
+                  </div>
+                  <div className="submission-email-field submission-email-field--subject">
+                    <span className="submission-email-label">Subject</span>
+                    <span>{deal.email.subject}</span>
+                  </div>
+                </div>
+                <div className="submission-email-body">
+                  {deal.email.body.split("\n").map((line, index) => (
+                    <p key={`${index}-${line}`}>{line || " "}</p>
+                  ))}
+                </div>
+              </div>
             )}
           </article>
         </section>
