@@ -85,13 +85,16 @@ export default function ContractReceivedPage() {
       {error && <p className="error-banner" role="alert">{error}</p>}
       <div className="received-grid">
         <section className="received-document">
-          <header>Service Agreement Draft - Version {deal.version}</header>
-          <article className="agreement-paper">
-            {deal.contractContent.split("\n").map((line, index) => (
-              <p key={`${index}-${line}`} className="contract-line">
-                {line || " "}
-              </p>
-            ))}
+          <article className="document-paper">
+            <div className="contract-doc-badge">COMMERCIAL CONTRACT</div>
+            {deal.contractContent.split("\n").map((line, i) => {
+              const isHeading =
+                /^[A-Z][A-Z\s\/&]{4,}[A-Z]$/.test(line.trim()) ||
+                /^\d+\.\s+[A-Z]/.test(line.trim());
+              return isHeading
+                ? <h3 key={i} className="contract-section-heading">{line}</h3>
+                : <p key={i} className="contract-line">{line || " "}</p>;
+            })}
           </article>
         </section>
         <aside className="received-side">
