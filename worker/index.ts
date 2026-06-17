@@ -392,6 +392,7 @@ async function api(request: Request, env: Env): Promise<Response> {
         const result = await runBusinessGraph(
           env,
           deal,
+          { organizationName: user.organizationName, reviewerName: user.name },
           (agentName, to, message) => emit("agent_step", { agentName, to, message }),
         );
         const evaluation: EvaluationRecord = {
