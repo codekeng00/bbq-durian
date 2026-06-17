@@ -118,7 +118,7 @@ export async function runBusinessGraph(
 8. GOVERNING LAW — applicable jurisdiction
 9. SIGNATURES — two signature blocks: Seller Representative and Buyer Representative, each with Name / Title / Date / Signature lines
 
-Write in formal legal language. Use the deal facts provided. Where information is missing, use reasonable placeholders in [square brackets]. Do not use JSON or markdown formatting — plain text only.`,
+Write in formal legal language. Use the deal facts provided. Where information is missing, leave a blank field represented as [            ] for the relevant party to fill in manually. Do not use descriptive placeholders like "[Placeholder for title]" or "[To be confirmed]" — only use [            ]. Do not use JSON or markdown formatting — plain text only.`,
           },
           {
             role: "user",
