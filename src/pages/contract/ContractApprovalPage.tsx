@@ -363,6 +363,7 @@ export default function ContractApprovalPage() {
 
           {isPending && evaluation && showReject && (
             <div className="approval-actions approval-actions-column">
+              {error && <p className="error-banner" role="alert">{error}</p>}
               <label className="form-field">
                 <span>Feedback category</span>
                 <select
@@ -375,7 +376,14 @@ export default function ContractApprovalPage() {
                 </select>
               </label>
               <label className="form-field">
-                <span>Required remediation details</span>
+                <span>
+                  Remediation details
+                  {rejectDetails.trim().length < 10 && (
+                    <small style={{ marginLeft: 8, color: "var(--muted)" }}>
+                      ({10 - rejectDetails.trim().length} more characters required)
+                    </small>
+                  )}
+                </span>
                 <textarea
                   rows={5}
                   value={rejectDetails}
