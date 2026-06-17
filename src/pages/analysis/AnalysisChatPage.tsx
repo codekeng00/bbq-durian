@@ -66,6 +66,8 @@ export default function AnalysisChatPage() {
   }
 
   const readOnly = deal.status === "pending_business_review";
+  const isApproved = deal.status === "approved";
+  const contractDocument = deal.evaluation?.contractDocument;
 
   async function handleSubmit() {
     if (!deal || !deal.email || busy) return;
@@ -112,16 +114,21 @@ export default function AnalysisChatPage() {
 
   function downloadProposal() {
     if (!deal?.email) return;
-    const content = [
-      `To: ${deal.email.to}`,
-      `Subject: ${subject}`,
-      "",
-      body,
-    ].join("\n");
+    const content = [`To: ${deal.email.to}`, `Subject: ${subject}`, "", body].join("\n");
     const url = URL.createObjectURL(new Blob([content], { type: "text/plain" }));
     const anchor = document.createElement("a");
     anchor.href = url;
     anchor.download = `${deal.extracted.clientName ?? "proposal"}-proposal.txt`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function downloadContract() {
+    if (!contractDocument) return;
+    const url = URL.createObjectURL(new Blob([contractDocument], { type: "text/plain" }));
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `${deal.extracted.clientName ?? "contract"}-commercial-contract.txt`;
     anchor.click();
     URL.revokeObjectURL(url);
   }
@@ -177,77 +184,103 @@ export default function AnalysisChatPage() {
                 <p>{deal.extracted.description}</p>
               </div>
               <span className="pill pill-status">
-                {deal.status === "pending_business_review"
-                  ? "IN REVIEW"
-                  : deal.status === "rejected"
-                    ? "RETURNED"
-                    : "DRAFT"}
+                {isApproved
+                  ? "APPROVED"
+                  : deal.status === "pending_business_review"
+                    ? "IN REVIEW"
+                    : deal.status === "rejected"
+                      ? "RETURNED"
+                      : "DRAFT"}
               </span>
             </div>
           </header>
-          <div className="email-body">
-            <p><strong>To:</strong> {deal.email.to}</p>
-            <label htmlFor="proposal-subject"><strong>Subject</strong></label>
-            <input
-              id="proposal-subject"
-              value={subject}
-              readOnly={readOnly}
-              onChange={(event) => setSubject(event.target.value)}
-              className="email-input"
-            />
-            <label htmlFor="proposal-body"><strong>Proposal message</strong></label>
-            <textarea
-              id="proposal-body"
-              value={body}
-              readOnly={readOnly}
-              onChange={(event) => setBody(event.target.value)}
-              rows={14}
-              className="email-textarea"
-            />
-          </div>
-          <div className="send-row action-row">
-            <button type="button" onClick={downloadProposal}>
-              Download Proposal
-            </button>
-            {readOnly ? (
-              <button
-                className="primary-button"
-                type="button"
-                disabled={busy}
-                onClick={handleWithdraw}
-              >
-                {busy ? "Withdrawing..." : "Withdraw for Revision"}
-              </button>
-            ) : (
-              <div>
-                {deal.validationIssues.length > 0 && (
-                  <label className="acknowledge-option">
-                    <input
-                      type="checkbox"
-                      checked={acknowledgeWarnings}
-                      onChange={(event) =>
-                        setAcknowledgeWarnings(event.target.checked)
-                      }
-                    />
-                    I reviewed the validation warnings.
-                  </label>
-                )}
-                <button
-                  className="primary-button"
-                  type="button"
-                  disabled={
-                    busy ||
-                    !subject.trim() ||
-                    !body.trim() ||
-                    (deal.validationIssues.length > 0 && !acknowledgeWarnings)
-                  }
-                  onClick={handleSubmit}
-                >
-                  {busy ? "Submitting..." : "Submit Version to Business"}
+
+          {isApproved && contractDocument ? (
+            <>
+              <div className="email-body">
+                <div className="contract-doc-badge">COMMERCIAL CONTRACT</div>
+                {contractDocument.split("\n").map((line, i) => {
+                  const isHeading =
+                    /^[A-Z][A-Z\s\/&]{4,}[A-Z]$/.test(line.trim()) ||
+                    /^\d+\.\s+[A-Z]/.test(line.trim());
+                  return isHeading
+                    ? <h3 key={i} className="contract-section-heading">{line}</h3>
+                    : <p key={i} className="contract-line">{line || " "}</p>;
+                })}
+              </div>
+              <div className="send-row action-row">
+                <button type="button" onClick={downloadContract}>
+                  Download Contract
                 </button>
               </div>
-            )}
-          </div>
+            </>
+          ) : (
+            <>
+              <div className="email-body">
+                <p><strong>To:</strong> {deal.email.to}</p>
+                <label htmlFor="proposal-subject"><strong>Subject</strong></label>
+                <input
+                  id="proposal-subject"
+                  value={subject}
+                  readOnly={readOnly}
+                  onChange={(event) => setSubject(event.target.value)}
+                  className="email-input"
+                />
+                <label htmlFor="proposal-body"><strong>Proposal message</strong></label>
+                <textarea
+                  id="proposal-body"
+                  value={body}
+                  readOnly={readOnly}
+                  onChange={(event) => setBody(event.target.value)}
+                  rows={14}
+                  className="email-textarea"
+                />
+              </div>
+              <div className="send-row action-row">
+                <button type="button" onClick={downloadProposal}>
+                  Download Proposal
+                </button>
+                {readOnly ? (
+                  <button
+                    className="primary-button"
+                    type="button"
+                    disabled={busy}
+                    onClick={handleWithdraw}
+                  >
+                    {busy ? "Withdrawing..." : "Withdraw for Revision"}
+                  </button>
+                ) : (
+                  <div>
+                    {deal.validationIssues.length > 0 && (
+                      <label className="acknowledge-option">
+                        <input
+                          type="checkbox"
+                          checked={acknowledgeWarnings}
+                          onChange={(event) =>
+                            setAcknowledgeWarnings(event.target.checked)
+                          }
+                        />
+                        I reviewed the validation warnings.
+                      </label>
+                    )}
+                    <button
+                      className="primary-button"
+                      type="button"
+                      disabled={
+                        busy ||
+                        !subject.trim() ||
+                        !body.trim() ||
+                        (deal.validationIssues.length > 0 && !acknowledgeWarnings)
+                      }
+                      onClick={handleSubmit}
+                    >
+                      {busy ? "Submitting..." : "Submit Version to Business"}
+                    </button>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
         </article>
       </section>
     </main>
