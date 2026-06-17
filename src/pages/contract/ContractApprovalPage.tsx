@@ -187,9 +187,6 @@ export default function ContractApprovalPage() {
                 Download Contract
               </button>
             )}
-            <button type="button" onClick={() => window.print()}>
-              Print / Save PDF
-            </button>
           </div>
           <article className="document-paper">
             {evaluation?.contractDocument ? (
