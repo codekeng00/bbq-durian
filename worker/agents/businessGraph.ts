@@ -118,11 +118,11 @@ export async function runBusinessGraph(
 8. GOVERNING LAW — applicable jurisdiction
 9. SIGNATURES — two signature blocks: Seller Representative and Buyer Representative, each with Name / Title / Date / Signature lines
 
-Write in formal legal language. Use the deal facts provided. Where information is missing, use reasonable placeholders in [square brackets]. Do not use JSON or markdown formatting — plain text only.`,
+Write in formal legal language. Use the deal facts provided. Where information is missing, leave a blank field represented as [            ] for the relevant party to fill in manually. Do not use descriptive placeholders like "[Placeholder for title]" or "[To be confirmed]" — only use [            ]. Do not use JSON or markdown formatting — plain text only.`,
           },
           {
             role: "user",
-            content: `Contract date: ${today}\nSeller company: ${context.organizationName}\nSeller representative: ${context.reviewerName}\nDeal facts: ${JSON.stringify(state.deal.extracted)}\nProposal email subject: ${state.deal.email?.subject ?? ""}\nProposal email body:\n${state.deal.email?.body ?? ""}\nParsed terms: ${JSON.stringify(parsed)}`,
+            content: `Contract date: ${today}\nSeller company: ${context.organizationName}\nSeller representative: ${context.reviewerName}\nDeal facts: ${JSON.stringify(state.deal.extracted)}\nProposal email subject: ${state.deal.email?.subject ?? ""}\nProposal email body:\n${state.deal.email?.body ?? ""}\nParsed terms: ${JSON.stringify(parsed)}\n\n<sales_conversation>\n${state.deal.rawConversation}\n</sales_conversation>`,
           },
         ],
         () => `COMMERCIAL SALES CONTRACT\n\nDate: ${today}\nContract No.: [AUTO-GENERATED]\n\nPARTIES\nSeller: ${context.organizationName}\nSeller Representative: ${context.reviewerName}\nBuyer: ${parsed.clientName}\nBuyer Contact: ${state.deal.extracted.contactEmail ?? "[Not provided]"}\n\nSCOPE\n${parsed.obligations.join("\n")}\n\nCOMMERCIAL TERMS\nTotal Value: $${parsed.value.toLocaleString()}\nPayment Terms: ${parsed.requestedTerms.join(", ")}\n\nSIGNATURES\nSeller Representative: _______________________\nBuyer Representative: _______________________`,

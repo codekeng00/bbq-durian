@@ -1,4 +1,4 @@
-[2026-06-17 09:00] Sales (Alice): Good morning! Is this Manager Lin from TechVanguard? I'm Alice Wong from Apex Components, your dedicated account manager. Thanks so much for making time today.
+[2026-06-17 09:00] Sales (Alice): Good morning! Is this Manager Lin from TechVanguard? I'm Alice Wong from DealMaker Demo Organization, your dedicated account manager. Our office is at Suite 8, Commerce Tower, Futian District, Shenzhen, Guangdong, 518048. Thanks so much for making time today.
 
 [2026-06-17 09:01] Client (Manager Lin): Morning, Alice. Yes, that's me. We've been working with Apex for a couple of years now, so I'm glad they assigned a dedicated person. We have a fairly urgent procurement need and wanted to move quickly.
 
@@ -56,7 +56,7 @@
 
 [2026-06-17 09:28] Sales (Alice): Absolutely, we'll include the full quality documentation pack with the delivery. Let me just summarise the full order to make sure we're aligned before I put this through for commercial approval.
 
-[2026-06-17 09:29] Sales (Alice): Order summary — Customer: TechVanguard Technology Co., Ltd. Contact: Manager Lin Wei, lin.wei@techvanguard.com, +86 138 0012 3456, CC purchase@techvanguard.com. Product: TVG-M5 Server Motherboard, Green Standard Version, Quantity: 50 units. Unit price: 4,200 RMB. Total: 210,000 RMB. Payment: Net 30 from invoice date. Delivery: Warehouse B, Apex Logistics Park, Xuefu Road, Nanshan District, Shenzhen, before 25th June 2026. Logistics: SF Express Land Freight Dedicated Line. Documentation: VAT invoice (Tax No. 91440300MA5DXXXX87), delivery note, factory quality inspection certificates. Does everything look correct?
+[2026-06-17 09:29] Sales (Alice): Order summary — Customer: TechVanguard Technology Co., Ltd., registered at Unit 12B, Innovation Tower, Nanshan District, Shenzhen, Guangdong, 518054. Buyer representative: Lin Wei, Head of Procurement, lin.wei@techvanguard.com, +86 138 0012 3456, CC purchase@techvanguard.com. Seller: DealMaker Demo Organization, Suite 8, Commerce Tower, Futian District, Shenzhen, Guangdong, 518048. Seller representative: Alice Wong, Senior Account Manager. Product: TVG-M5 Server Motherboard, Green Standard Version, Quantity: 50 units. Unit price: 4,200 RMB. Total: 210,000 RMB. Payment: Net 30 from invoice date. Delivery: Warehouse B, Apex Logistics Park, Xuefu Road, Nanshan District, Shenzhen, before 25th June 2026. Logistics: SF Express Land Freight Dedicated Line. Documentation: VAT invoice (Tax No. 91440300MA5DXXXX87), delivery note, factory quality inspection certificates. Does everything look correct?
 
 [2026-06-17 09:31] Client (Manager Lin): Yes, that's all correct. Please move quickly — we need the commercial team to approve this well before the 25th so there's enough buffer for any last-minute issues.
 
