@@ -229,7 +229,7 @@ export async function runSalesGraph(
     })
     .addNode("construction", async (state) => {
       const client = state.extracted.clientName ?? "the client";
-      const decisionMaker = state.extracted.decisionMaker ?? "the team";
+      const decisionMaker = state.extracted.decisionMaker ?? "not specified";
       const value = state.extracted.value ?? 0;
       const email = await structuredCompletion(
         env,
@@ -238,7 +238,7 @@ export async function runSalesGraph(
           {
             role: "system",
             content:
-              'You are DealMaker\'s Sales Construction Agent. Your task is to draft a polished, persuasive, and professional proposal email on behalf of the salesperson.\n\nGuidelines:\n- Open with a warm, personalised greeting referencing the client by name.\n- Briefly recap the client\'s stated goals and pain points to show you listened.\n- Clearly present the proposed solution, product/service scope, quantity, and pricing.\n- Highlight 2–3 concrete benefits or value points relevant to the client\'s context.\n- Include delivery timeline, payment terms, and any next steps discussed.\n- Close with a confident, friendly call to action inviting the client to confirm or schedule a follow-up.\n- Maintain a professional yet approachable tone throughout — not stiff or generic.\n- Only include facts supported by the conversation or internal knowledge. Never invent discounts, inventory levels, or legal commitments.\n\nReturn exactly {"to":"string","subject":"string","body":"string"}.',
+              'You are DealMaker\'s Sales Construction Agent. Your task is to draft an internal deal submission report from the salesperson to the Business Review Team, requesting contract approval.\n\nThis is an INTERNAL document — it is NOT sent to the client. The tone should be clear, factual, and professional, like a colleague briefing a manager.\n\nGuidelines:\n- Address it to the Business Review Team (not the client).\n- Open with a brief one-line summary: deal name, client, and requested action (e.g. "Requesting contract approval for [Client] — [Value]").\n- Provide a structured deal overview: client background, deal scope, negotiated value, delivery timeline, payment terms.\n- Note the client decision maker and contact details.\n- Summarise any key points from the sales conversation that the business team should be aware of (commitments made, client concerns, risk factors).\n- End with a clear request: specify what approval or action is needed from the business team.\n- Keep it concise and factual — no marketing language, no customer-facing copy.\n- Only include facts supported by the conversation or internal knowledge.\n\nThe "to" field must be set to "business-review@dealmaker.internal".\n\nReturn exactly {"to":"string","subject":"string","body":"string"}.',
           },
           {
             role: "user",
@@ -246,20 +246,26 @@ export async function runSalesGraph(
           },
         ],
         () => ({
-          to: state.extracted.contactEmail ?? "",
-          subject: `Proposal for ${client}: ${state.extracted.description ?? "Partnership Opportunity"}`,
+          to: "business-review@dealmaker.internal",
+          subject: `[Deal Submission] ${client} — $${value.toLocaleString()} Contract Approval Request`,
           body: [
-            `Dear ${decisionMaker},`,
+            `To: Business Review Team`,
+            `Re: Contract approval request for ${client}`,
             "",
-            `Thank you for discussing ${client}'s initiative. We prepared a tailored proposal valued at approximately $${value.toLocaleString()}.`,
+            `DEAL OVERVIEW`,
+            `Client: ${client}`,
+            `Deal Value: $${value.toLocaleString()}`,
+            `Scope: ${state.extracted.description ?? "See conversation for details"}`,
+            `Decision Maker: ${decisionMaker}`,
+            `Client Contact: ${state.extracted.contactEmail ?? "Not provided"}`,
             "",
-            "The proposed scope follows our standard commercial policy, including Net 30 payment terms and confirmation of final availability before contract signature.",
+            `KEY POINTS FROM SALES CONVERSATION`,
+            `Please refer to the attached conversation transcript for full context. The client has agreed in principle to the proposed scope and pricing.`,
             "",
-            "Would you be available this week to review the scope, timeline, and commercial terms?",
+            `REQUESTED ACTION`,
+            `Please review the above deal details and issue the commercial contract for this engagement. Let me know if any additional information is required.`,
             "",
-            "Best regards,",
-            "Alice Chen",
-            "DealMaker Sales Team",
+            `Submitted by: Sales Team`,
           ].join("\n"),
         }),
       );
@@ -295,7 +301,7 @@ export async function runSalesGraph(
           {
             role: "system",
             content:
-              'You are DealMaker\'s Sales Validation Agent. Your role is to review and improve the drafted proposal email before it goes to the human sales team for final sign-off.\n\nCheck and correct the following:\n1. Completeness — does it address the client\'s requirements, scope, pricing, timeline, and next steps?\n2. Accuracy — are all figures, product names, and commitments supported by the deal facts and policy knowledge? Remove or flag anything invented.\n3. Unsupported promises — remove any discounts, guarantees, or legal commitments not grounded in the internal knowledge base.\n4. Professional tone — the email should be warm but polished; fix awkward phrasing, grammar, or overly generic language.\n5. Sensitive data — remove any data that should not appear in an outbound client email.\n6. Call to action — ensure there is a clear, specific next step for the client.\n\nIf issues are found, correct them directly in the email and list each issue concisely. If the email is already strong, return it unchanged with an empty issues array.\n\nReturn exactly {"valid":boolean,"issues":["string"],"email":{"to":"string","subject":"string","body":"string"}}.',
+              'You are DealMaker\'s Sales Validation Agent. Your role is to review and improve the internal deal submission report before it goes to the Business Review Team for contract approval.\n\nThis is an INTERNAL document submitted by a salesperson to request contract issuance — it is not sent to the client.\n\nCheck and correct the following:\n1. Completeness — does the submission include client name, deal value, scope, decision maker, and a clear approval request?\n2. Accuracy — are all figures and commitments supported by the deal facts and conversation? Flag or remove anything invented or unverifiable.\n3. Unsupported commitments — flag any promises made to the client that fall outside standard policy (unusual discounts, non-standard terms, delivery guarantees).\n4. Clarity — the report should be clear and concise for an internal business reader; fix any confusing phrasing.\n5. Missing context — if key details the business team would need are absent, note them as issues.\n6. Action request — ensure there is a clear, specific ask from the business team (e.g. contract issuance, approval, escalation).\n\nIf issues are found, correct them directly in the report and list each issue concisely. If the report is already complete, return it unchanged with an empty issues array.\n\nReturn exactly {"valid":boolean,"issues":["string"],"email":{"to":"string","subject":"string","body":"string"}}.',
           },
           {
             role: "user",
