@@ -386,32 +386,46 @@ async function api(request: Request, env: Env): Promise<Response> {
     const cached = await findEvaluation(env, user, deal.id, deal.version);
     if (cached) return json({ evaluation: cached, cached: true });
 
-    const result = await runBusinessGraph(env, deal);
-    const evaluation: EvaluationRecord = {
-      id: crypto.randomUUID(),
-      dealId: deal.id,
-      proposalVersion: deal.version,
-      riskScore: result.riskScore,
-      profitScore: result.profitScore,
-      complianceScore: result.complianceScore,
-      priorityScore: result.priorityScore,
-      complianceNotes: result.complianceNotes,
-      recommendation: result.recommendation,
-      reason: result.reason,
-      mode: result.mode,
-      provider: result.provider,
-      policySources: result.policySources,
-      failureReason: result.failureReason,
-      createdBy: user.id,
-      createdAt: new Date().toISOString(),
-    };
-    await createEvaluation(env, user, evaluation);
-    await recordAuditEvent(env, user, "deal.evaluated", deal.id, {
-      evaluationId: evaluation.id,
-      proposalVersion: evaluation.proposalVersion,
-      mode: evaluation.mode,
-    });
-    return json({ evaluation, cached: false });
+    const { response, emit, close } = createSseStream();
+    void (async () => {
+      try {
+        const result = await runBusinessGraph(
+          env,
+          deal,
+          (agentName, to, message) => emit("agent_step", { agentName, to, message }),
+        );
+        const evaluation: EvaluationRecord = {
+          id: crypto.randomUUID(),
+          dealId: deal.id,
+          proposalVersion: deal.version,
+          riskScore: result.riskScore,
+          profitScore: result.profitScore,
+          complianceScore: result.complianceScore,
+          priorityScore: result.priorityScore,
+          complianceNotes: result.complianceNotes,
+          recommendation: result.recommendation,
+          reason: result.reason,
+          mode: result.mode,
+          provider: result.provider,
+          policySources: result.policySources,
+          failureReason: result.failureReason,
+          createdBy: user.id,
+          createdAt: new Date().toISOString(),
+        };
+        await createEvaluation(env, user, evaluation);
+        await recordAuditEvent(env, user, "deal.evaluated", deal.id, {
+          evaluationId: evaluation.id,
+          proposalVersion: evaluation.proposalVersion,
+          mode: evaluation.mode,
+        });
+        emit("done", { evaluation, cached: false });
+      } catch (err) {
+        emit("error", { message: err instanceof Error ? err.message : "Unknown error" });
+      } finally {
+        close();
+      }
+    })();
+    return response;
   }
 
   const approveDealId = routeParam(pathname, /^\/api\/deals\/([^/]+)\/approve$/);

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useDemoData } from "../../hooks/useDemoData";
+import { evaluateDealStream, type BusinessAgentStep } from "../../services/ai/evaluateDeal";
 import type { Deal, Evaluation } from "../../data/types";
 
 const REJECT_CATEGORIES = [
@@ -14,13 +15,7 @@ const REJECT_CATEGORIES = [
 export default function ContractApprovalPage() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
-  const {
-    currentUser,
-    loadDeal,
-    evaluateDeal,
-    approveDeal,
-    rejectDeal,
-  } = useDemoData();
+  const { currentUser, loadDeal, approveDeal, rejectDeal } = useDemoData();
 
   const dealId = params.get("dealId") ?? "";
   const [deal, setDeal] = useState<Deal>();
@@ -33,6 +28,7 @@ export default function ContractApprovalPage() {
   const [rejectCategory, setRejectCategory] = useState("compliance");
   const [rejectDetails, setRejectDetails] = useState("");
   const [overrideReason, setOverrideReason] = useState("");
+  const [agentSteps, setAgentSteps] = useState<BusinessAgentStep[]>([]);
 
   useEffect(() => {
     let active = true;
@@ -47,7 +43,9 @@ export default function ContractApprovalPage() {
           !loaded.evaluation
         ) {
           setEvaluating(true);
-          const result = await evaluateDeal(loaded.id);
+          const result = await evaluateDealStream(loaded.id, (step) => {
+            if (active) setAgentSteps((prev) => [...prev, step]);
+          });
           if (active) setEvaluation(result);
         }
       })
@@ -68,7 +66,38 @@ export default function ContractApprovalPage() {
   }, [dealId, evaluateDeal, loadDeal]);
 
   if (loading) {
-    return <main className="page-message">Loading secure review...</main>;
+    return (
+      <main className="contract-shell">
+        <header className="contract-brand">
+          DealMaker
+          <Link to="/active-pipelines-business">Back to Pipelines</Link>
+        </header>
+        <section className="evaluation-stream-page">
+          <h2>Agent Review in Progress</h2>
+          <p className="evaluation-stream-sub">Our agents are evaluating this proposal. Results will appear when they finish.</p>
+          <div className="evaluation-stream-feed">
+            {agentSteps.map((step, i) => (
+              <div key={i} className="band-msg">
+                <span className="band-msg-sender">{step.agentName}</span>
+                <div className="band-msg-bubble">
+                  <span className="band-msg-mention">@{step.to}</span>
+                  {" "}{step.message}
+                </div>
+              </div>
+            ))}
+            <div className="band-msg">
+              <span className="band-msg-sender">
+                {agentSteps.length === 0 ? "Pipeline" : agentSteps[agentSteps.length - 1]?.agentName}
+              </span>
+              <div className="band-msg-bubble band-msg-bubble--pending">
+                <span className="agent-typing"><span /><span /><span /></span>
+                <span>{agentSteps.length === 0 ? "Starting review pipeline..." : "Thinking..."}</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    );
   }
 
   if (!deal || !deal.email) {
@@ -204,7 +233,26 @@ export default function ContractApprovalPage() {
         <aside className="approval-panel">
           <h2>Policy and Risk Review</h2>
           {evaluating ? (
-            <p>Running the server-side review for this proposal version...</p>
+            <div className="evaluation-aside-stream">
+              {agentSteps.map((step, i) => (
+                <div key={i} className="band-msg">
+                  <span className="band-msg-sender">{step.agentName}</span>
+                  <div className="band-msg-bubble">
+                    <span className="band-msg-mention">@{step.to}</span>
+                    {" "}{step.message}
+                  </div>
+                </div>
+              ))}
+              <div className="band-msg">
+                <span className="band-msg-sender">
+                  {agentSteps.length === 0 ? "Pipeline" : agentSteps[agentSteps.length - 1]?.agentName}
+                </span>
+                <div className="band-msg-bubble band-msg-bubble--pending">
+                  <span className="agent-typing"><span /><span /><span /></span>
+                  <span>{agentSteps.length === 0 ? "Starting review pipeline..." : "Thinking..."}</span>
+                </div>
+              </div>
+            </div>
           ) : evaluation ? (
             <>
               <div

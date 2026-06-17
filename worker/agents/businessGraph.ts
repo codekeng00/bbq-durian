@@ -1,7 +1,7 @@
 import { Annotation, END, START, StateGraph } from "@langchain/langgraph";
 import { z } from "zod";
 import { createBandRoom, handoff } from "../lib/band";
-import { structuredCompletion, structuredCompletionDetailed } from "../lib/llm";
+import { structuredCompletion, structuredCompletionDetailed, textCompletion } from "../lib/llm";
 import { knowledgeContext, retrieveKnowledge } from "../lib/rag";
 import { recordAgentEvent } from "../lib/repository";
 import type { DealRecord, Env } from "../types";
@@ -42,9 +42,12 @@ const BusinessState = Annotation.Root({
   coordinationContext: Annotation<string>,
 });
 
+export type BusinessAgentEmit = (agentName: string, to: string, message: string) => void;
+
 export async function runBusinessGraph(
   env: Env,
   deal: DealRecord,
+  emit: BusinessAgentEmit = () => {},
 ): Promise<
   Evaluation &
     z.infer<typeof JudgmentSchema> & {
@@ -93,13 +96,24 @@ export async function runBusinessGraph(
         provider: "featherless",
         output: parsed,
       });
-      const coordinationContext = await handoff(
+      const parserMsg = await textCompletion(
         env,
-        room,
-        "business_parser",
-        "business_evaluation",
-        `Structured proposal and retrieved ${rows.length} policy sources: ${JSON.stringify(parsed)}`,
+        [
+          {
+            role: "system",
+            content:
+              "You are DealMaker's Business Parsing Agent. Write a short, natural, first-person handoff message to the Business Evaluation Agent summarising the proposal you just parsed. Mention the client, deal value, key terms, obligations, and how many policy sources were retrieved. Tell the Evaluation Agent what to focus on. Write 3–4 sentences, no bullet points, no JSON.",
+          },
+          {
+            role: "user",
+            content: `Parsed proposal: ${JSON.stringify(parsed)}. Policy sources retrieved: ${rows.length} (${rows.map((r) => r.title).join("; ")}).`,
+          },
+        ],
+        () =>
+          `Proposal parsed for ${parsed.clientName}. Deal value: $${parsed.value.toLocaleString()}. Retrieved ${rows.length} policy source(s). Passing to Business Evaluation for scoring.`,
       );
+      const coordinationContext = await handoff(env, room, "business_parser", "business_evaluation", parserMsg);
+      emit("Business Parsing Agent", "Business Evaluation Agent", parserMsg);
       return {
         parsed,
         policy: knowledgeContext(rows),
@@ -153,13 +167,24 @@ export async function runBusinessGraph(
           output: evaluation,
         },
       );
-      const coordinationContext = await handoff(
+      const evalMsg = await textCompletion(
         env,
-        room,
-        "business_evaluation",
-        "business_judgment",
-        `Evaluation scores ready: ${JSON.stringify(evaluation)}`,
+        [
+          {
+            role: "system",
+            content:
+              "You are DealMaker's Business Evaluation Agent. Write a short, natural, first-person handoff message to the Business Judgment Agent summarising the scores you produced. Mention risk level, profit score, compliance score, priority score, and any notable compliance concerns. Tell the Judgment Agent what recommendation you expect they should consider. Write 3–4 sentences, no bullet points, no JSON.",
+          },
+          {
+            role: "user",
+            content: `Scores: ${JSON.stringify(evaluation)}`,
+          },
+        ],
+        () =>
+          `Evaluation complete. Risk: ${evaluation.riskScore}, Profit: ${evaluation.profitScore}, Compliance: ${evaluation.complianceScore}, Priority: ${evaluation.priorityScore}. Passing to Business Judgment for final recommendation.`,
       );
+      const coordinationContext = await handoff(env, room, "business_evaluation", "business_judgment", evalMsg);
+      emit("Business Evaluation Agent", "Business Judgment Agent", evalMsg);
       return {
         evaluation,
         coordinationContext,
@@ -207,13 +232,26 @@ export async function runBusinessGraph(
           output: judgment,
         },
       );
-      await handoff(
+      const judgmentMsg = await textCompletion(
         env,
-        room,
-        "business_judgment",
-        "business_parser",
-        `Recommendation complete; awaiting human business decision: ${JSON.stringify(judgment)}`,
+        [
+          {
+            role: "system",
+            content:
+              "You are DealMaker's Business Judgment Agent. Write a short, natural, first-person summary message describing your final recommendation. Mention whether you recommend approval or rejection, briefly explain your reasoning, and state that the human business reviewer will make the final decision. Write 3–4 sentences, no bullet points, no JSON.",
+          },
+          {
+            role: "user",
+            content: `Judgment: ${JSON.stringify(judgment)}. Evaluation scores: ${JSON.stringify(state.evaluation)}.`,
+          },
+        ],
+        () =>
+          judgment.recommendation === "approve"
+            ? `Judgment complete. I recommend approving this proposal — the risk and compliance scores are within acceptable thresholds. The human business reviewer will make the final call.`
+            : `Judgment complete. I recommend rejecting this proposal — ${judgment.reason}. The human business reviewer will make the final decision.`,
       );
+      await handoff(env, room, "business_judgment", "business_parser", judgmentMsg);
+      emit("Business Judgment Agent", "Business Parsing Agent", judgmentMsg);
       return {
         judgment,
         evaluationMode:

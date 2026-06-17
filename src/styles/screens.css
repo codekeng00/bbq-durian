@@ -789,3 +789,14 @@ h1, h2, h3, h4, p { margin-top: 0; }
   0%, 80%, 100% { transform: scale(0.7); opacity: 0.4; }
   40% { transform: scale(1); opacity: 1; }
 }
+
+/* Business evaluation streaming view */
+.evaluation-stream-page {
+  max-width: 680px;
+  margin: 48px auto;
+  padding: 0 24px;
+}
+.evaluation-stream-page h2 { font-size: 20px; margin-bottom: 6px; }
+.evaluation-stream-sub { color: var(--muted); margin-bottom: 24px; font-size: 14px; }
+.evaluation-stream-feed { display: flex; flex-direction: column; gap: 0; }
+.evaluation-aside-stream { display: flex; flex-direction: column; gap: 0; margin-bottom: 12px; }
