@@ -330,6 +330,18 @@ export async function archiveDeal(
   await ensureChanged(result);
 }
 
+export async function clearAllDeals(
+  env: Env,
+  user: AuthenticatedUser,
+): Promise<void> {
+  const org = user.organizationId;
+  await env.DB.prepare(`DELETE FROM signatures WHERE organization_id = ?`).bind(org).run();
+  await env.DB.prepare(`DELETE FROM audit_events WHERE organization_id = ?`).bind(org).run();
+  await env.DB.prepare(`DELETE FROM agent_events WHERE organization_id = ?`).bind(org).run();
+  await env.DB.prepare(`DELETE FROM evaluations WHERE organization_id = ?`).bind(org).run();
+  await env.DB.prepare(`DELETE FROM deals WHERE organization_id = ?`).bind(org).run();
+}
+
 export async function findEvaluation(
   env: Env,
   user: AuthenticatedUser,
@@ -463,6 +475,48 @@ export async function attachAgentEvents(
   )
     .bind(dealId, organizationId, roomId)
     .run();
+}
+
+export type AgentEventRecord = {
+  agentName: string;
+  stage: string;
+  payload: unknown;
+  roomId: string | null;
+  createdAt: string;
+};
+
+export async function getAgentEvents(
+  env: Env,
+  organizationId: string,
+  dealId: string,
+): Promise<AgentEventRecord[]> {
+  const rows = await env.DB.prepare(
+    `SELECT agent_name, stage, payload_json, band_room_id, created_at
+     FROM agent_events
+     WHERE organization_id = ? AND deal_id = ?
+     ORDER BY created_at ASC`,
+  )
+    .bind(organizationId, dealId)
+    .all<{
+      agent_name: string;
+      stage: string;
+      payload_json: string;
+      band_room_id: string | null;
+      created_at: string;
+    }>();
+  return rows.results.map((row) => ({
+    agentName: row.agent_name,
+    stage: row.stage,
+    payload: ((): unknown => {
+      try {
+        return JSON.parse(row.payload_json);
+      } catch {
+        return row.payload_json;
+      }
+    })(),
+    roomId: row.band_room_id,
+    createdAt: row.created_at,
+  }));
 }
 
 export async function recordSignature(

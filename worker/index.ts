@@ -1,5 +1,5 @@
 import { runBusinessGraph } from "./agents/businessGraph";
-import { parseConversation, runSalesGraph } from "./agents/salesGraph";
+import { generateClarifyingQuestion, parseConversation, runSalesGraph } from "./agents/salesGraph";
 import {
   clearDevSessionCookie,
   createDevSession,
@@ -7,6 +7,7 @@ import {
   optionalUser,
   requireUser,
 } from "./lib/auth";
+import { fetchRoomTranscript } from "./lib/band";
 import { buildContractDraft, hashDocument } from "./lib/contract";
 import { errorResponse, HttpError, json, readJson, routeParam } from "./lib/http";
 import { reindexKnowledge } from "./lib/rag";
@@ -26,10 +27,12 @@ import {
 import {
   archiveDeal,
   attachAgentEvents,
+  clearAllDeals,
   createDeal,
   createEvaluation,
   enforceRateLimit,
   findEvaluation,
+  getAgentEvents,
   getDeal,
   listDeals,
   recordAuditEvent,
@@ -38,6 +41,7 @@ import {
   updateDealEmail,
 } from "./lib/repository";
 import type {
+  AgentName,
   DealRecord,
   Env,
   EvaluationRecord,
@@ -145,6 +149,11 @@ async function api(request: Request, env: Env): Promise<Response> {
     return json({ deals: await listDeals(env, user) });
   }
 
+  if (pathname === "/api/deals" && request.method === "DELETE") {
+    await clearAllDeals(env, user);
+    return json({ ok: true });
+  }
+
   if (pathname === "/api/deals" && request.method === "POST") {
     if (user.team !== "sales") throw new HttpError(403, "sales role required.");
     await enforceRateLimit(env, user, "create-deal", 30, 60);
@@ -183,6 +192,32 @@ async function api(request: Request, env: Env): Promise<Response> {
     return json({ deal });
   }
 
+  const eventsDealId = routeParam(pathname, /^\/api\/deals\/([^/]+)\/events$/);
+  if (eventsDealId && request.method === "GET") {
+    const deal = await getDeal(env, user, eventsDealId);
+    if (!deal) throw new HttpError(404, "Deal not found.");
+    const events = await getAgentEvents(env, user.organizationId, eventsDealId);
+
+    // Real Band @mention transcript, merged per room from the participating agents.
+    const byRoom = new Map<string, Set<AgentName>>();
+    for (const event of events) {
+      if (!event.roomId) continue;
+      const set = byRoom.get(event.roomId) ?? new Set<AgentName>();
+      set.add(event.agentName as AgentName);
+      byRoom.set(event.roomId, set);
+    }
+    const transcript: Array<{ roomId: string; sender: string; content: string; at: string }> = [];
+    for (const [roomId, names] of byRoom) {
+      const messages = await fetchRoomTranscript(env, roomId, [...names]);
+      for (const message of messages) {
+        transcript.push({ roomId, sender: message.sender, content: message.content, at: message.at });
+      }
+    }
+    transcript.sort((a, b) => a.at.localeCompare(b.at));
+
+    return json({ events, transcript });
+  }
+
   if (pathname === "/api/agents/analyze" && request.method === "POST") {
     if (user.team !== "sales") throw new HttpError(403, "sales role required.");
     await enforceRateLimit(env, user, "analyze", 20, 60);
@@ -192,7 +227,9 @@ async function api(request: Request, env: Env): Promise<Response> {
     return json({
       extracted,
       missingFields: missing,
-      nextQuestion: missing[0] ? FIELD_QUESTIONS[missing[0]] : undefined,
+      nextQuestion: missing[0]
+        ? await generateClarifyingQuestion(env, missing[0], extracted, body.rawText, FIELD_QUESTIONS[missing[0]])
+        : undefined,
     });
   }
 
@@ -207,7 +244,15 @@ async function api(request: Request, env: Env): Promise<Response> {
     return json({
       extracted,
       missingFields: missing,
-      nextQuestion: missing[0] ? FIELD_QUESTIONS[missing[0]] : undefined,
+      nextQuestion: missing[0]
+        ? await generateClarifyingQuestion(
+            env,
+            missing[0],
+            extracted,
+            "",
+            FIELD_QUESTIONS[missing[0]],
+          )
+        : undefined,
     });
   }
 

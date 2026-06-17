@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AppSidebar from "../../components/AppSidebar";
 import EmptyPipelineState from "../../components/EmptyPipelineState";
@@ -5,7 +6,20 @@ import { useDemoData } from "../../hooks/useDemoData";
 
 export default function ActivePipelinesBusinessPage() {
   const navigate = useNavigate();
-  const { deals, currentUser } = useDemoData();
+  const { deals, currentUser, clearAllDeals } = useDemoData();
+  const [clearing, setClearing] = useState(false);
+
+  async function handleClearAll() {
+    if (!window.confirm("Delete all deal data? This cannot be undone.")) return;
+    setClearing(true);
+    try {
+      await clearAllDeals();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to clear data.");
+    } finally {
+      setClearing(false);
+    }
+  }
 
   const pending = deals.filter((deal) => deal.status === "pending_business_review");
   const history = deals.filter(
@@ -35,6 +49,14 @@ export default function ActivePipelinesBusinessPage() {
           <p className="review-notice">
             {pending.length} proposal{pending.length === 1 ? "" : "s"} awaiting review
           </p>
+          <button
+            type="button"
+            className="clear-all-btn"
+            disabled={clearing}
+            onClick={handleClearAll}
+          >
+            {clearing ? "Clearing..." : "Clear All Data"}
+          </button>
         </header>
 
         <section className="pipeline-card">

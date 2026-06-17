@@ -21,8 +21,9 @@ const STATUS_CLASS: Record<DealStatus, string> = {
 
 export default function ActivePipelinesSalesPage() {
   const navigate = useNavigate();
-  const { deals, currentUser, archiveDeal } = useDemoData();
+  const { deals, currentUser, archiveDeal, clearAllDeals } = useDemoData();
   const [busyId, setBusyId] = useState("");
+  const [clearing, setClearing] = useState(false);
   const active = deals.filter((deal) => deal.status !== "approved");
   const completed = deals.filter((deal) => deal.status === "approved");
 
@@ -31,6 +32,18 @@ export default function ActivePipelinesSalesPage() {
       navigate(`/contract-received?dealId=${deal.id}`);
     } else {
       navigate(`/analysis-chat?dealId=${deal.id}`);
+    }
+  }
+
+  async function handleClearAll() {
+    if (!window.confirm("Delete all deal data? This cannot be undone.")) return;
+    setClearing(true);
+    try {
+      await clearAllDeals();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to clear data.");
+    } finally {
+      setClearing(false);
     }
   }
 
@@ -69,6 +82,14 @@ export default function ActivePipelinesSalesPage() {
           <p className="review-notice">
             {active.length} active opportunit{active.length === 1 ? "y" : "ies"}
           </p>
+          <button
+            type="button"
+            className="clear-all-btn"
+            disabled={clearing}
+            onClick={handleClearAll}
+          >
+            {clearing ? "Clearing..." : "Clear All Data"}
+          </button>
         </header>
 
         <section className="pipeline-card">

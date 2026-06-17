@@ -19,7 +19,8 @@
     "typecheck:worker": "tsc --noEmit -p tsconfig.worker.json",
     "band:online": "node scripts/band-runtime.mjs",
     "test": "vitest run",
-    "band:sync": "node scripts/sync-band-creds.mjs"
+    "band:sync": "node scripts/sync-band-creds.mjs",
+    "band:create": "node scripts/create-band-agents.mjs"
   },
   "dependencies": {
     "@langchain/core": "^1.1.49",

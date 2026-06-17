@@ -76,6 +76,50 @@ export async function createBandRoom(
   return room;
 }
 
+export type BandMessage = {
+  id: string;
+  sender: string;
+  content: string;
+  at: string;
+};
+
+// Retrieve the real @mention transcript of a room by merging the per-agent
+// context views of the given participating agents (deduped by message id).
+export async function fetchRoomTranscript(
+  env: Env,
+  roomId: string,
+  participantNames: AgentName[],
+): Promise<BandMessage[]> {
+  const map = agents(env);
+  const byId = new Map<string, BandMessage>();
+  for (const name of participantNames) {
+    const agent = map[name];
+    if (!agent) continue;
+    try {
+      const result = (await bandFetch(
+        env,
+        `/api/v1/agent/chats/${roomId}/context`,
+        agent,
+        undefined,
+        "GET",
+      )) as { data?: Array<Record<string, unknown>> };
+      for (const m of result.data ?? []) {
+        const id = String(m.id ?? "");
+        if (!id || byId.has(id)) continue;
+        byId.set(id, {
+          id,
+          sender: String(m.sender_name ?? "Agent"),
+          content: String(m.content ?? ""),
+          at: String(m.inserted_at ?? ""),
+        });
+      }
+    } catch (error) {
+      console.error(`Band context fetch failed for ${name} in ${roomId}:`, error);
+    }
+  }
+  return [...byId.values()].sort((a, b) => a.at.localeCompare(b.at));
+}
+
 export async function handoff(
   env: Env,
   room: Room,

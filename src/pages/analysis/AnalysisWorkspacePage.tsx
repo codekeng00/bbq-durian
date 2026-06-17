@@ -4,9 +4,10 @@ import { useDemoData } from "../../hooks/useDemoData";
 import { analyzeConversation } from "../../services/ai/analyzeConversation";
 import { provideMissingInfo } from "../../services/ai/provideMissingInfo";
 import { generateEmail } from "../../services/ai/generateEmail";
+import AgentCollaboration from "../../components/AgentCollaboration";
 import type { ChatMessage, ExtractedInfo } from "../../data/types";
 
-type Phase = "upload" | "analyzing" | "chat" | "generating";
+type Phase = "upload" | "analyzing" | "chat" | "generating" | "collaboration";
 
 export default function AnalysisWorkspacePage() {
   const navigate = useNavigate();
@@ -22,6 +23,8 @@ export default function AnalysisWorkspacePage() {
   const [answer, setAnswer] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [dealId, setDealId] = useState("");
+  const [samplePreview, setSamplePreview] = useState<string | null>(null);
 
   async function startAnalysis(text: string, name: string) {
     setError("");
@@ -78,10 +81,17 @@ export default function AnalysisWorkspacePage() {
     try {
       const response = await fetch("/sample-conversation.txt");
       if (!response.ok) throw new Error("Training sample is unavailable.");
-      await startAnalysis(await response.text(), "sample-conversation.txt");
+      setSamplePreview(await response.text());
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Sample could not load.");
     }
+  }
+
+  async function confirmSample() {
+    if (!samplePreview) return;
+    const text = samplePreview;
+    setSamplePreview(null);
+    await startAnalysis(text, "sample-conversation.txt");
   }
 
   async function submitAnswer() {
@@ -138,7 +148,9 @@ export default function AnalysisWorkspacePage() {
       validationFailure: generated.validationFailure,
       bandRoomId: generated.roomId,
     });
-    navigate(`/analysis-chat?dealId=${deal.id}`);
+    // Show the real agent collaboration as a chat room before moving on.
+    setDealId(deal.id);
+    setPhase("collaboration");
   }
 
   return (
@@ -231,9 +243,25 @@ export default function AnalysisWorkspacePage() {
               {phase === "analyzing" && "Extracting supported facts"}
               {phase === "chat" && "Collecting required business details"}
               {phase === "generating" && "Drafting and validating proposal"}
+              {phase === "collaboration" && "Agents collaborating in Band"}
             </small>
           </div>
         </header>
+
+        {phase === "collaboration" ? (
+          <>
+            <AgentCollaboration dealId={dealId} sequential />
+            <div className="chat-composer">
+              <button
+                className="primary-button"
+                type="button"
+                onClick={() => navigate(`/analysis-chat?dealId=${dealId}`)}
+              >
+                Review proposal →
+              </button>
+            </div>
+          </>
+        ) : (
         <div className="chat-feed">
           {phase === "analyzing" && (
             <section className="pipeline-box">
@@ -268,6 +296,7 @@ export default function AnalysisWorkspacePage() {
             </article>
           )}
         </div>
+        )}
 
         {phase === "chat" && missingFields.length > 0 && (
           <div className="chat-composer">
@@ -291,6 +320,40 @@ export default function AnalysisWorkspacePage() {
           </div>
         )}
       </section>
+
+      {samplePreview !== null && (
+        <div className="sample-modal-overlay" onClick={() => setSamplePreview(null)}>
+          <div className="sample-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="sample-modal-header">
+              <h2>Sample Conversation Preview</h2>
+              <button
+                type="button"
+                className="sample-modal-close"
+                onClick={() => setSamplePreview(null)}
+              >
+                ✕
+              </button>
+            </div>
+            <pre className="sample-modal-body">{samplePreview}</pre>
+            <div className="sample-modal-footer">
+              <button
+                type="button"
+                className="sample-modal-cancel"
+                onClick={() => setSamplePreview(null)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="sample-modal-confirm"
+                onClick={confirmSample}
+              >
+                Use This Sample →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

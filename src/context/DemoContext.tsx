@@ -61,6 +61,7 @@ export type DemoContextValue = {
     details: string,
   ) => Promise<Deal>;
   archiveDeal: (id: string, expectedVersion: number) => Promise<void>;
+  clearAllDeals: () => Promise<void>;
   signAgreement: (
     id: string,
     expectedVersion: number,
@@ -244,6 +245,11 @@ export function DemoProvider({ children }: { children: ReactNode }) {
           body: JSON.stringify({ expectedVersion }),
         });
         setDeals((current) => current.filter((deal) => deal.id !== id));
+      },
+
+      clearAllDeals: async () => {
+        await apiFetch("/api/deals", { method: "DELETE" });
+        setDeals([]);
       },
 
       signAgreement: async (id, expectedVersion, typedName) => {

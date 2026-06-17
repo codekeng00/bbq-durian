@@ -86,6 +86,37 @@ export async function parseConversation(
   };
 }
 
+const QuestionSchema = z.object({ question: z.string() });
+
+// Sales Supplement Agent: when a required field is missing, the agent itself
+// composes the clarifying question (LLM). The hardcoded text is only a fallback
+// used when live AI is unavailable.
+export async function generateClarifyingQuestion(
+  env: Env,
+  field: string,
+  extracted: ExtractedInfo,
+  rawConversation: string,
+  fallbackQuestion: string,
+): Promise<string> {
+  const result = await structuredCompletion(
+    env,
+    QuestionSchema,
+    [
+      {
+        role: "system",
+        content:
+          'You are DealMaker\'s Sales Supplement Agent. The proposal is missing one required detail. Ask the salesperson ONE short, natural, specific question to obtain it. Do not ask for anything already known. Return exactly {"question":"string"}.',
+      },
+      {
+        role: "user",
+        content: `Missing field: ${field}\nKnown facts: ${JSON.stringify(extracted)}\n\n<conversation>\n${rawConversation}\n</conversation>`,
+      },
+    ],
+    () => ({ question: fallbackQuestion }),
+  );
+  return result.question?.trim() || fallbackQuestion;
+}
+
 const SalesState = Annotation.Root({
   extracted: Annotation<ExtractedInfo>,
   rawConversation: Annotation<string>,
