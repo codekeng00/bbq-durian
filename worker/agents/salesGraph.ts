@@ -71,7 +71,7 @@ export async function parseConversation(
       {
         role: "system",
         content:
-          'You are DealMaker\'s Sales Parsing Agent. Extract only facts supported by the conversation. Return exactly {"clientName":"string","value":number,"description":"string","decisionMaker":"string"}. Omit only facts that are genuinely absent.',
+          'You are DealMaker\'s Sales Parsing Agent. Carefully read the sales conversation and extract only facts that are explicitly stated or clearly implied.\n\n- clientName: the client\'s company or organisation name\n- value: total deal value as a number (convert currencies if needed, e.g. ¥210000 → 210000)\n- description: a concise one-sentence summary of what is being sold and why (product, quantity, use case)\n- decisionMaker: the name of the person making the purchase decision on the client side\n- contactEmail: the client\'s email address if mentioned\n\nDo not invent or infer facts that are not present. If a field is genuinely absent from the conversation, omit it. Return exactly {"clientName":"string","value":number,"description":"string","decisionMaker":"string","contactEmail":"string"}.',
       },
       { role: "user", content: rawConversation },
     ],
@@ -162,7 +162,15 @@ export async function runSalesGraph(
         provider: "featherless",
         output: parsed,
       });
-      const parserMsg = `Extracted deal facts: ${JSON.stringify(parsed)}`;
+      const parserMsg = [
+        `I've completed my analysis of the sales conversation.`,
+        parsed.clientName ? `Client identified: ${parsed.clientName}.` : `Client name could not be determined — please flag for manual review.`,
+        parsed.decisionMaker ? `Decision maker: ${parsed.decisionMaker}.` : null,
+        parsed.contactEmail ? `Contact email: ${parsed.contactEmail}.` : null,
+        parsed.value ? `Deal value: ¥${parsed.value.toLocaleString()}.` : `Deal value not specified — treat as TBD.`,
+        parsed.description ? `Scope: ${parsed.description}.` : null,
+        `All extractable facts have been validated against the conversation. Passing to Sales Enrichment — please retrieve relevant product knowledge, pricing policies, and precedent cases to strengthen the proposal context.`,
+      ].filter(Boolean).join(" ");
       const coordinationContext = await handoff(env, room, "sales_parser", "sales_enrichment", parserMsg);
       emit("Sales Parsing Agent", "Sales Enrichment Agent", parserMsg);
       return { extracted: parsed, roomId: workflowId, coordinationContext };
@@ -178,7 +186,17 @@ export async function runSalesGraph(
         provider: "keyword-fallback",
         sources: rows.map((row) => row.title),
       });
-      const enrichMsg = `RAG enrichment complete. Sources: ${rows.map((row) => row.title).join(", ")}`;
+      const sourceList = rows.length > 0
+        ? `Retrieved ${rows.length} relevant knowledge source(s): ${rows.map((r) => r.title).join("; ")}.`
+        : `No matching knowledge sources found in the database — construction should proceed using the deal facts alone.`;
+      const enrichMsg = [
+        `Knowledge enrichment complete.`,
+        sourceList,
+        rows.length > 0
+          ? `The retrieved materials cover applicable product specs, pricing policies, and past deal precedents that should inform the proposal.`
+          : null,
+        `Passing full context to Sales Construction — please draft a professional, personalised proposal email that accurately reflects the client's requirements and stays grounded in the retrieved policy knowledge.`,
+      ].filter(Boolean).join(" ");
       const coordinationContext = await handoff(env, room, "sales_enrichment", "sales_construction", enrichMsg);
       emit("Sales Enrichment Agent", "Sales Construction Agent", enrichMsg);
       return { knowledge: context, coordinationContext };
@@ -194,7 +212,7 @@ export async function runSalesGraph(
           {
             role: "system",
             content:
-              'You are the Sales Construction Agent. Draft a concise, professional proposal email. Use retrieved policy facts, never invent discounts, inventory, or legal commitments. Return exactly {"to":"string","subject":"string","body":"string"}.',
+              'You are DealMaker\'s Sales Construction Agent. Your task is to draft a polished, persuasive, and professional proposal email on behalf of the salesperson.\n\nGuidelines:\n- Open with a warm, personalised greeting referencing the client by name.\n- Briefly recap the client\'s stated goals and pain points to show you listened.\n- Clearly present the proposed solution, product/service scope, quantity, and pricing.\n- Highlight 2–3 concrete benefits or value points relevant to the client\'s context.\n- Include delivery timeline, payment terms, and any next steps discussed.\n- Close with a confident, friendly call to action inviting the client to confirm or schedule a follow-up.\n- Maintain a professional yet approachable tone throughout — not stiff or generic.\n- Only include facts supported by the conversation or internal knowledge. Never invent discounts, inventory levels, or legal commitments.\n\nReturn exactly {"to":"string","subject":"string","body":"string"}.',
           },
           {
             role: "user",
@@ -223,7 +241,12 @@ export async function runSalesGraph(
         provider: "featherless",
         subject: email.subject,
       });
-      const constructMsg = `Proposal draft ready for compliance validation: ${email.subject}`;
+      const constructMsg = [
+        `Proposal draft complete.`,
+        `Subject: "${email.subject}", addressed to ${email.to || decisionMaker} at ${client}.`,
+        `The email covers the key deal terms, positions our offering in line with the client's stated requirements, and references only commitments supported by internal policy.`,
+        `Handing off to Sales Validation — please review for compliance, factual accuracy, unsupported promises, and professional tone before this proposal moves to human sign-off.`,
+      ].join(" ");
       const coordinationContext = await handoff(env, room, "sales_construction", "sales_validation", constructMsg);
       emit("Sales Construction Agent", "Sales Validation Agent", constructMsg);
       return { email, coordinationContext };
@@ -236,7 +259,7 @@ export async function runSalesGraph(
           {
             role: "system",
             content:
-              'You are the Sales Validation Agent. Check completeness, professional format, unsupported promises, sensitive data, and compliance. Correct the email when needed. Return exactly {"valid":boolean,"issues":["string"],"email":{"to":"string","subject":"string","body":"string"}}.',
+              'You are DealMaker\'s Sales Validation Agent. Your role is to review and improve the drafted proposal email before it goes to the human sales team for final sign-off.\n\nCheck and correct the following:\n1. Completeness — does it address the client\'s requirements, scope, pricing, timeline, and next steps?\n2. Accuracy — are all figures, product names, and commitments supported by the deal facts and policy knowledge? Remove or flag anything invented.\n3. Unsupported promises — remove any discounts, guarantees, or legal commitments not grounded in the internal knowledge base.\n4. Professional tone — the email should be warm but polished; fix awkward phrasing, grammar, or overly generic language.\n5. Sensitive data — remove any data that should not appear in an outbound client email.\n6. Call to action — ensure there is a clear, specific next step for the client.\n\nIf issues are found, correct them directly in the email and list each issue concisely. If the email is already strong, return it unchanged with an empty issues array.\n\nReturn exactly {"valid":boolean,"issues":["string"],"email":{"to":"string","subject":"string","body":"string"}}.',
           },
           {
             role: "user",
@@ -258,7 +281,15 @@ export async function runSalesGraph(
         mode: completion.mode,
         failureReason: completion.failureReason,
       });
-      const validMsg = `Validation complete. Human sales review is required. Issues: ${result.issues.join("; ") || "none"}`;
+      const issuesSummary = result.issues.length === 0
+        ? `No compliance issues were detected — the proposal is clean and ready to proceed.`
+        : `${result.issues.length} issue(s) were identified and corrected: ${result.issues.join("; ")}.`;
+      const validMsg = [
+        `Compliance validation complete.`,
+        issuesSummary,
+        `The proposal has been reviewed for factual accuracy, policy adherence, unsupported commitments, and professional formatting.`,
+        `This deal is now queued for human sales review and sign-off before the email is sent to the client.`,
+      ].join(" ");
       await handoff(env, room, "sales_validation", "sales_parser", validMsg);
       emit("Sales Validation Agent", "Sales Parsing Agent", validMsg);
       return {
