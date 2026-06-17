@@ -240,7 +240,7 @@ export default function ContractApprovalPage() {
               ))}
               <div className="band-msg">
                 <span className="band-msg-sender">
-                  {agentSteps.length === 0 ? "Pipeline" : agentSteps[agentSteps.length - 1]?.agentName}
+                  {agentSteps.length === 0 ? "Pipeline" : agentSteps[agentSteps.length - 1]?.to}
                 </span>
                 <div className="band-msg-bubble band-msg-bubble--pending">
                   <span className="agent-typing"><span /><span /><span /></span>
