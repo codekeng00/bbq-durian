@@ -145,7 +145,7 @@ export default function ContractApprovalPage() {
           <div>
             <h1>
               {deal.extracted.clientName}{" "}
-              <span className="pill">
+              <span className={`pill ${deal.status === "rejected" ? "pill--rejected" : deal.status === "approved" ? "pill--approved" : "pill--pending"}`}>
                 {isPending ? "PENDING REVIEW" : deal.status.toUpperCase()}
               </span>
             </h1>
