@@ -145,7 +145,7 @@ export default function ContractApprovalPage() {
           <div>
             <h1>
               {deal.extracted.clientName}{" "}
-              <span className="pill">
+              <span className={`pill ${deal.status === "rejected" ? "pill--rejected" : deal.status === "approved" ? "pill--approved" : "pill--pending"}`}>
                 {isPending ? "PENDING REVIEW" : deal.status.toUpperCase()}
               </span>
             </h1>
@@ -162,10 +162,6 @@ export default function ContractApprovalPage() {
           <span>
             <small>SERVER RISK</small>
             <strong>{evaluation?.riskScore.toUpperCase() ?? "PENDING"}</strong>
-          </span>
-          <span>
-            <small>PROPOSAL VERSION</small>
-            <strong>{deal.version}</strong>
           </span>
         </div>
       </section>
@@ -274,21 +270,12 @@ export default function ContractApprovalPage() {
             </div>
           ) : evaluation ? (
             <>
-              <div
-                className={
-                  evaluation.mode === "rules_only"
-                    ? "warning-banner compact-banner"
-                    : "info-banner compact-banner"
-                }
-              >
-                <strong>
-                  {evaluation.mode === "live_ai"
-                    ? "Live AI and policy review"
-                    : "Rules-only degraded review"}
-                </strong>
-                <small>{evaluation.provider}</small>
-                {evaluation.failureReason && <p>{evaluation.failureReason}</p>}
-              </div>
+              {evaluation.mode === "rules_only" && (
+                <div className="warning-banner compact-banner">
+                  <strong>Rules-only degraded review</strong>
+                  {evaluation.failureReason && <p>{evaluation.failureReason}</p>}
+                </div>
+              )}
               <div className="score-grid">
                 <span>Profit <strong>{evaluation.profitScore}</strong></span>
                 <span>Compliance <strong>{evaluation.complianceScore}</strong></span>
@@ -363,6 +350,7 @@ export default function ContractApprovalPage() {
 
           {isPending && evaluation && showReject && (
             <div className="approval-actions approval-actions-column">
+              {error && <p className="error-banner" role="alert">{error}</p>}
               <label className="form-field">
                 <span>Feedback category</span>
                 <select
@@ -375,7 +363,14 @@ export default function ContractApprovalPage() {
                 </select>
               </label>
               <label className="form-field">
-                <span>Required remediation details</span>
+                <span>
+                  Remediation details
+                  {rejectDetails.trim().length < 10 && (
+                    <small style={{ marginLeft: 8, color: "var(--muted)" }}>
+                      ({10 - rejectDetails.trim().length} more characters required)
+                    </small>
+                  )}
+                </span>
                 <textarea
                   rows={5}
                   value={rejectDetails}

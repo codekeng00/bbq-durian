@@ -160,23 +160,23 @@ export default function ActivePipelinesSalesPage() {
           + New Proposal
         </button>
 
-        {confirmingClear && (
-          <div className="confirm-overlay" onClick={() => setConfirmingClear(false)}>
-            <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>
-              <h3>Clear All Data?</h3>
-              <p>This will permanently delete all deal data and cannot be undone.</p>
-              <div className="confirm-modal-actions">
-                <button className="confirm-cancel" type="button" onClick={() => setConfirmingClear(false)}>
-                  Cancel
-                </button>
-                <button className="confirm-danger" type="button" disabled={clearing} onClick={handleClearAll}>
-                  {clearing ? "Clearing..." : "Delete All"}
-                </button>
-              </div>
+      </main>
+      {confirmingClear && (
+        <div className="confirm-overlay" onClick={() => setConfirmingClear(false)}>
+          <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>Clear All Data?</h3>
+            <p>This will permanently delete all deal data and cannot be undone.</p>
+            <div className="confirm-modal-actions">
+              <button className="confirm-cancel" type="button" onClick={() => setConfirmingClear(false)}>
+                Cancel
+              </button>
+              <button className="confirm-danger" type="button" disabled={clearing} onClick={handleClearAll}>
+                {clearing ? "Clearing..." : "Delete All"}
+              </button>
             </div>
           </div>
-        )}
-      </main>
+        </div>
+      )}
     </>
   );
 }
