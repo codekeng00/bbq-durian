@@ -163,10 +163,6 @@ export default function ContractApprovalPage() {
             <small>SERVER RISK</small>
             <strong>{evaluation?.riskScore.toUpperCase() ?? "PENDING"}</strong>
           </span>
-          <span>
-            <small>PROPOSAL VERSION</small>
-            <strong>{deal.version}</strong>
-          </span>
         </div>
       </section>
 
