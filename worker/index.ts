@@ -455,7 +455,7 @@ async function api(request: Request, env: Env): Promise<Response> {
         "Rules-only analysis requires a documented human override reason.",
       );
     }
-    const contractContent = buildContractDraft(deal);
+    const contractContent = evaluation.contractDocument || buildContractDraft(deal);
     const contractHash = await hashDocument(contractContent);
     const updated = await transitionDeal(
       env,
