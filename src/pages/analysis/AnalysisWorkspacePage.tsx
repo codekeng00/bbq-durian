@@ -3,11 +3,10 @@ import { Link, useNavigate } from "react-router-dom";
 import { useDemoData } from "../../hooks/useDemoData";
 import { analyzeConversation } from "../../services/ai/analyzeConversation";
 import { provideMissingInfo } from "../../services/ai/provideMissingInfo";
-import { generateEmail } from "../../services/ai/generateEmail";
-import AgentCollaboration from "../../components/AgentCollaboration";
+import { generateEmail, type AgentStep } from "../../services/ai/generateEmail";
 import type { ChatMessage, ExtractedInfo } from "../../data/types";
 
-type Phase = "upload" | "analyzing" | "chat" | "generating" | "collaboration";
+type Phase = "upload" | "analyzing" | "chat" | "generating";
 
 export default function AnalysisWorkspacePage() {
   const navigate = useNavigate();
@@ -23,8 +22,8 @@ export default function AnalysisWorkspacePage() {
   const [answer, setAnswer] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [dealId, setDealId] = useState("");
   const [samplePreview, setSamplePreview] = useState<string | null>(null);
+  const [agentSteps, setAgentSteps] = useState<{ agentName: string; summary: string }[]>([]);
 
   async function startAnalysis(text: string, name: string) {
     setError("");
@@ -131,7 +130,10 @@ export default function AnalysisWorkspacePage() {
     sourceText: string,
   ) {
     setPhase("generating");
-    const generated = await generateEmail(info, sourceText);
+    setAgentSteps([]);
+    const generated = await generateEmail(info, sourceText, (step: AgentStep) => {
+      setAgentSteps((prev) => [...prev, { agentName: step.agentName, summary: step.summary }]);
+    });
     const deal = await createDeal({
       rawConversation: sourceText,
       extracted: info,
@@ -148,9 +150,7 @@ export default function AnalysisWorkspacePage() {
       validationFailure: generated.validationFailure,
       bandRoomId: generated.roomId,
     });
-    // Show the real agent collaboration as a chat room before moving on.
-    setDealId(deal.id);
-    setPhase("collaboration");
+    navigate(`/analysis-chat?dealId=${deal.id}`);
   }
 
   return (
@@ -243,25 +243,10 @@ export default function AnalysisWorkspacePage() {
               {phase === "analyzing" && "Extracting supported facts"}
               {phase === "chat" && "Collecting required business details"}
               {phase === "generating" && "Drafting and validating proposal"}
-              {phase === "collaboration" && "Agents collaborating in Band"}
             </small>
           </div>
         </header>
 
-        {phase === "collaboration" ? (
-          <>
-            <AgentCollaboration dealId={dealId} sequential />
-            <div className="chat-composer">
-              <button
-                className="primary-button"
-                type="button"
-                onClick={() => navigate(`/analysis-chat?dealId=${dealId}`)}
-              >
-                Review proposal →
-              </button>
-            </div>
-          </>
-        ) : (
         <div className="chat-feed">
           {phase === "analyzing" && (
             <section className="pipeline-box">
@@ -291,12 +276,27 @@ export default function AnalysisWorkspacePage() {
           ))}
 
           {phase === "generating" && (
-            <article>
-              <div className="ai-bubble">Generating and validating the proposal...</div>
-            </article>
+            <>
+              {agentSteps.map((step, i) => (
+                <article key={i}>
+                  <div className="ai-bubble agent-step-bubble">
+                    <span className="agent-step-name">{step.agentName}</span>
+                    <span>{step.summary}</span>
+                  </div>
+                  <p className="agent-meta"><b className="purple">AGENT</b></p>
+                </article>
+              ))}
+              <article>
+                <div className="ai-bubble agent-step-pending">
+                  <span className="agent-typing"><span /><span /><span /></span>
+                  {agentSteps.length === 0
+                    ? "Starting agent pipeline..."
+                    : "Next agent working..."}
+                </div>
+              </article>
+            </>
           )}
         </div>
-        )}
 
         {phase === "chat" && missingFields.length > 0 && (
           <div className="chat-composer">
