@@ -3,10 +3,10 @@ import { Link, useNavigate } from "react-router-dom";
 import { useDemoData } from "../../hooks/useDemoData";
 import { analyzeConversation } from "../../services/ai/analyzeConversation";
 import { provideMissingInfo } from "../../services/ai/provideMissingInfo";
-import { generateEmail, type AgentStep } from "../../services/ai/generateEmail";
+import { generateEmail, type AgentStep, type GenerateEmailResult } from "../../services/ai/generateEmail";
 import type { ChatMessage, ExtractedInfo } from "../../data/types";
 
-type Phase = "upload" | "analyzing" | "chat" | "generating";
+type Phase = "upload" | "analyzing" | "chat" | "generating" | "ready";
 
 export default function AnalysisWorkspacePage() {
   const navigate = useNavigate();
@@ -23,7 +23,13 @@ export default function AnalysisWorkspacePage() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [samplePreview, setSamplePreview] = useState<string | null>(null);
-  const [agentSteps, setAgentSteps] = useState<{ agentName: string; summary: string }[]>([]);
+  const [agentSteps, setAgentSteps] = useState<{ agentName: string; to: string; message: string }[]>([]);
+  const [emailResult, setEmailResult] = useState<GenerateEmailResult | null>(null);
+  const [pendingFinishArgs, setPendingFinishArgs] = useState<{
+    info: ExtractedInfo;
+    chatHistory: ChatMessage[];
+    sourceText: string;
+  } | null>(null);
 
   async function startAnalysis(text: string, name: string) {
     setError("");
@@ -131,24 +137,32 @@ export default function AnalysisWorkspacePage() {
   ) {
     setPhase("generating");
     setAgentSteps([]);
+    setPendingFinishArgs({ info, chatHistory, sourceText });
     const generated = await generateEmail(info, sourceText, (step: AgentStep) => {
-      setAgentSteps((prev) => [...prev, { agentName: step.agentName, summary: step.summary }]);
+      setAgentSteps((prev) => [...prev, { agentName: step.agentName, to: step.to, message: step.message }]);
     });
+    setEmailResult(generated);
+    setPhase("ready");
+  }
+
+  async function handleProceed() {
+    if (!emailResult || !pendingFinishArgs) return;
+    const { info, chatHistory, sourceText } = pendingFinishArgs;
     const deal = await createDeal({
       rawConversation: sourceText,
       extracted: info,
       chatHistory,
-      email: generated.email,
+      email: emailResult.email,
       validationIssues:
-        generated.validationMode === "rules_only"
+        emailResult.validationMode === "rules_only"
           ? [
-              ...generated.validationIssues,
+              ...emailResult.validationIssues,
               "Live AI validation was unavailable; complete a manual proposal review.",
             ]
-          : generated.validationIssues,
-      validationMode: generated.validationMode,
-      validationFailure: generated.validationFailure,
-      bandRoomId: generated.roomId,
+          : emailResult.validationIssues,
+      validationMode: emailResult.validationMode,
+      validationFailure: emailResult.validationFailure,
+      bandRoomId: emailResult.roomId,
     });
     navigate(`/analysis-chat?dealId=${deal.id}`);
   }
@@ -243,6 +257,7 @@ export default function AnalysisWorkspacePage() {
               {phase === "analyzing" && "Extracting supported facts"}
               {phase === "chat" && "Collecting required business details"}
               {phase === "generating" && "Drafting and validating proposal"}
+              {phase === "ready" && "Proposal ready — review when you're set"}
             </small>
           </div>
         </header>
@@ -275,28 +290,49 @@ export default function AnalysisWorkspacePage() {
             </article>
           ))}
 
+          {(phase === "generating" || phase === "ready") && agentSteps.map((step, i) => (
+            <article key={i}>
+              <div className="ai-bubble agent-step-bubble">
+                <span className="agent-step-name">
+                  {step.agentName} <span className="agent-step-arrow">→</span>{" "}
+                  <span className="agent-step-to">@{step.to}</span>
+                </span>
+                <span>{step.message}</span>
+              </div>
+              <p className="agent-meta"><b className="purple">AGENT</b></p>
+            </article>
+          ))}
+
           {phase === "generating" && (
-            <>
-              {agentSteps.map((step, i) => (
-                <article key={i}>
-                  <div className="ai-bubble agent-step-bubble">
-                    <span className="agent-step-name">{step.agentName}</span>
-                    <span>{step.summary}</span>
-                  </div>
-                  <p className="agent-meta"><b className="purple">AGENT</b></p>
-                </article>
-              ))}
-              <article>
-                <div className="ai-bubble agent-step-pending">
-                  <span className="agent-typing"><span /><span /><span /></span>
-                  {agentSteps.length === 0
-                    ? "Starting agent pipeline..."
-                    : "Next agent working..."}
-                </div>
-              </article>
-            </>
+            <article>
+              <div className="ai-bubble agent-step-pending">
+                <span className="agent-typing"><span /><span /><span /></span>
+                {agentSteps.length === 0
+                  ? "Starting agent pipeline..."
+                  : "Next agent working..."}
+              </div>
+            </article>
+          )}
+
+          {phase === "ready" && (
+            <article>
+              <div className="ai-bubble">
+                All agents have finished deliberating. The proposal is ready for your review.
+              </div>
+              <p className="agent-meta"><b className="purple">ASSISTANT</b></p>
+            </article>
           )}
         </div>
+
+        {phase === "ready" && (
+          <div className="chat-composer">
+            <div className="composer-field composer-field--centered">
+              <button type="button" className="proceed-btn" onClick={handleProceed}>
+                Review Proposal →
+              </button>
+            </div>
+          </div>
+        )}
 
         {phase === "chat" && missingFields.length > 0 && (
           <div className="chat-composer">

@@ -591,6 +591,9 @@ h1, h2, h3, h4, p { margin-top: 0; }
 .composer-field { display: flex; gap: 8px; padding: 8px; border: 1px solid var(--blue); border-radius: 6px; }
 .composer-field textarea { flex: 1; min-height: 58px; border: 0; resize: none; outline: 0; }
 .composer-field button { align-self: flex-end; width: 32px; height: 32px; color: #fff; background: var(--blue); border: 0; border-radius: 50%; }
+.composer-field--centered { justify-content: center; border: none; padding: 12px 0; }
+.proceed-btn { padding: 12px 28px; background: #7c3aed; color: #fff; border: 0; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+.proceed-btn:hover { background: #6d28d9; }
 
 .review-shell { display: grid; grid-template-columns: 256px minmax(0, 1fr); min-height: 1024px; }
 .review-side { display: flex; flex-direction: column; justify-content: space-between; background: #fff; border-right: 1px solid var(--border); }
@@ -742,6 +745,8 @@ h1, h2, h3, h4, p { margin-top: 0; }
   color: #7c3aed;
   opacity: 0.8;
 }
+.agent-step-arrow { opacity: 0.5; }
+.agent-step-to { color: #0ea5e9; }
 .agent-step-pending {
   display: flex;
   align-items: center;
