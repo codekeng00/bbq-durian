@@ -1,33 +1,28 @@
-import type { Email, ExtractedInfo } from "../../data/types";
+import type { Evaluation } from "../../data/types";
 
-export type AgentStep = {
+export type BusinessAgentStep = {
   agentName: string;
   to: string;
   message: string;
 };
 
-export type GenerateEmailResult = {
-  email: Email;
-  validationIssues: string[];
-  validationMode: "live_ai" | "rules_only";
-  validationFailure?: string;
-  roomId?: string;
-};
-
-export async function generateEmail(
-  info: ExtractedInfo,
-  rawConversation = "",
-  onStep: (step: AgentStep) => void = () => {},
-): Promise<GenerateEmailResult> {
-  const response = await fetch("/api/agents/generate-email", {
+export async function evaluateDealStream(
+  dealId: string,
+  onStep: (step: BusinessAgentStep) => void = () => {},
+): Promise<Evaluation> {
+  const response = await fetch(`/api/deals/${dealId}/evaluate`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     credentials: "same-origin",
-    body: JSON.stringify({ info, rawConversation }),
   });
 
+  // Cached result — plain JSON response (no SSE)
+  if (response.headers.get("content-type")?.includes("application/json")) {
+    const data = (await response.json()) as { evaluation: Evaluation };
+    return data.evaluation;
+  }
+
   if (!response.ok || !response.body) {
-    throw new Error(`Email generation failed (${response.status})`);
+    throw new Error(`Evaluation failed (${response.status})`);
   }
 
   const reader = response.body.getReader();
@@ -39,7 +34,6 @@ export async function generateEmail(
     if (done) break;
     buffer += decoder.decode(value, { stream: true });
 
-    // SSE chunks are separated by double newline.
     const parts = buffer.split("\n\n");
     buffer = parts.pop() ?? "";
 
@@ -52,9 +46,9 @@ export async function generateEmail(
       const data = JSON.parse(dataLine.slice("data:".length).trim()) as unknown;
 
       if (event === "agent_step") {
-        onStep(data as AgentStep);
+        onStep(data as BusinessAgentStep);
       } else if (event === "done") {
-        return data as GenerateEmailResult;
+        return (data as { evaluation: Evaluation }).evaluation;
       } else if (event === "error") {
         throw new Error((data as { message: string }).message);
       }

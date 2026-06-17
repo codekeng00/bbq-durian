@@ -1,7 +1,65 @@
-[2026-06-10 14:30] Sales (Alice): Hi, thanks for taking the time today.
-[2026-06-10 14:31] Client (Acme Corporation): Happy to. We're evaluating an Enterprise SaaS Agreement for our regional teams this quarter.
-[2026-06-10 14:33] Sales (Alice): Great. Do you have a budget range in mind?
-[2026-06-10 14:35] Client (Acme Corporation): We've allocated around $250,000 for the first year, with room to grow if the rollout goes well.
-[2026-06-10 14:38] Sales (Alice): Understood. What timeline are you targeting for go-live?
-[2026-06-10 14:40] Client (Acme Corporation): Ideally within 12 weeks. We want the regional offices onboarded before Q4.
-[2026-06-10 14:43] Sales (Alice): Perfect. I'll prepare a tailored proposal and send it over for review.
+[2026-06-17 09:00] Sales (Alice): Good morning! Is this Manager Lin from TechVanguard? I'm Alice Wong from Apex Components, your dedicated account manager. Thanks so much for making time today.
+
+[2026-06-17 09:01] Client (Manager Lin): Morning, Alice. Yes, that's me. We've been working with Apex for a couple of years now, so I'm glad they assigned a dedicated person. We have a fairly urgent procurement need and wanted to move quickly.
+
+[2026-06-17 09:02] Sales (Alice): Absolutely, I'm here to help. Before we dive in, let me just confirm a few details for our records. The company is TechVanguard — could you give me your full registered business name and your office address?
+
+[2026-06-17 09:03] Client (Manager Lin): Sure. Full name is TechVanguard Technology Co., Ltd. Our registered office is at Unit 12B, Innovation Tower, Nanshan District, Shenzhen, Guangdong, 518054.
+
+[2026-06-17 09:04] Sales (Alice): Perfect. And your contact details — best email and phone for the formal paperwork?
+
+[2026-06-17 09:05] Client (Manager Lin): My direct email is lin.wei@techvanguard.com, phone is +86 138 0012 3456. For procurement documents, please always CC our purchasing team at purchase@techvanguard.com — that makes sure nothing gets missed on our end.
+
+[2026-06-17 09:06] Sales (Alice): Great, noted. And you're the decision maker for this purchase, Manager Lin?
+
+[2026-06-17 09:07] Client (Manager Lin): Yes, I'm the Head of Procurement. I can approve orders up to 500,000 RMB directly. Anything above that needs sign-off from our CFO, but this order should be well within my authority.
+
+[2026-06-17 09:08] Sales (Alice): Understood. So tell me about what you need — what's driving this purchase?
+
+[2026-06-17 09:09] Client (Manager Lin): We're expanding our data centre capacity for a new client project. We need server motherboards — specifically the TVG-M5 model. We've used it before and it's proven reliable for our workloads. This time we need 50 units.
+
+[2026-06-17 09:10] Sales (Alice): 50 units of the TVG-M5, noted. Just to make sure we get you the right configuration — are you looking at the Green Standard Version or the Black Reinforced Version? They have different specs and availability.
+
+[2026-06-17 09:11] Client (Manager Lin): What's the practical difference between the two?
+
+[2026-06-17 09:12] Sales (Alice): The Green Standard is our mainstream model — same core performance, ideal for standard server rack deployments. The Black Reinforced has additional shielding and is rated for higher-vibration environments, like edge deployments or industrial settings. It's also about 8% pricier.
+
+[2026-06-17 09:13] Client (Manager Lin): We're deploying in a standard controlled data centre environment, so the Green Standard should be fine. Let's go with that.
+
+[2026-06-17 09:14] Sales (Alice): Perfect choice for your use case. Now, on pricing — under your master agreement 2026-TVG-004, your contracted unit price for the TVG-M5 Green Standard is 4,200 RMB. For 50 units, your total order value comes to 210,000 RMB. Does that align with your budget?
+
+[2026-06-17 09:15] Client (Manager Lin): Yes, that's within budget. We had provisioned around 220,000 RMB for this, so we're comfortable. What are the payment terms?
+
+[2026-06-17 09:16] Sales (Alice): Under your existing agreement, it's Net 30 from invoice date — so you'll have 30 days from the date we issue the invoice to complete payment. We'll invoice upon confirmed delivery.
+
+[2026-06-17 09:17] Client (Manager Lin): That works. We always pay on time — you can check our history. No issues there.
+
+[2026-06-17 09:18] Sales (Alice): I know, your account is in excellent standing. Now, delivery — where should we ship to, and what's your deadline?
+
+[2026-06-17 09:19] Client (Manager Lin): Ship to our Shenzhen Nanshan Warehouse. The address is Warehouse B, Apex Logistics Park, Xuefu Road, Nanshan District, Shenzhen. We need everything delivered and signed for before 25th June — that's a hard deadline because our client's installation team is scheduled from the 26th.
+
+[2026-06-17 09:20] Sales (Alice): Understood — 25th June is firm. For logistics, based on your past orders we've been using SF Express Land Freight Dedicated Line. Shall we continue with that?
+
+[2026-06-17 09:21] Client (Manager Lin): Yes, SF Express has always been reliable for us. Same arrangement. Who handles the delivery coordination on your side?
+
+[2026-06-17 09:22] Sales (Alice): Our logistics team will manage it end-to-end. I'll be your single point of contact — if anything comes up, you reach me directly. I'll also send you a tracking number once the shipment is dispatched.
+
+[2026-06-17 09:23] Client (Manager Lin): Good. One more thing — we'll need a delivery note and a VAT invoice (增值税专用发票) for this order. Our finance team is strict about that.
+
+[2026-06-17 09:24] Sales (Alice): Of course. Can you confirm your company's tax registration number for the VAT invoice?
+
+[2026-06-17 09:25] Client (Manager Lin): Yes, it's 91440300MA5DXXXX87. The invoice should be issued to TechVanguard Technology Co., Ltd., same registered address I gave you earlier.
+
+[2026-06-17 09:26] Sales (Alice): Got it, I'll make sure finance has that on file. Is there anything else you need included with the shipment — inspection certificates, product test reports?
+
+[2026-06-17 09:27] Client (Manager Lin): Yes actually — please include the factory quality inspection certificate for each unit. Our IT team does a spot check upon arrival and they'll want to see those documents.
+
+[2026-06-17 09:28] Sales (Alice): Absolutely, we'll include the full quality documentation pack with the delivery. Let me just summarise the full order to make sure we're aligned before I put this through for commercial approval.
+
+[2026-06-17 09:29] Sales (Alice): Order summary — Customer: TechVanguard Technology Co., Ltd. Contact: Manager Lin Wei, lin.wei@techvanguard.com, +86 138 0012 3456, CC purchase@techvanguard.com. Product: TVG-M5 Server Motherboard, Green Standard Version, Quantity: 50 units. Unit price: 4,200 RMB. Total: 210,000 RMB. Payment: Net 30 from invoice date. Delivery: Warehouse B, Apex Logistics Park, Xuefu Road, Nanshan District, Shenzhen, before 25th June 2026. Logistics: SF Express Land Freight Dedicated Line. Documentation: VAT invoice (Tax No. 91440300MA5DXXXX87), delivery note, factory quality inspection certificates. Does everything look correct?
+
+[2026-06-17 09:31] Client (Manager Lin): Yes, that's all correct. Please move quickly — we need the commercial team to approve this well before the 25th so there's enough buffer for any last-minute issues.
+
+[2026-06-17 09:32] Sales (Alice): Understood. I'll prepare the proposal email for the commercial review team today and flag this as time-sensitive. You should hear back within 24 hours. Thank you, Manager Lin — we'll get this done for you.
+
+[2026-06-17 09:33] Client (Manager Lin): Great, thank you Alice. Looking forward to the confirmation.

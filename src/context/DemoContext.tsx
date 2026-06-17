@@ -1,103 +1,278 @@
-import { createContext, useEffect, useState, type ReactNode } from "react";
-import type { Deal, DemoState, ExtractedInfo, Email, ChatMessage, Team } from "../data/types";
-
-const STORAGE_KEY = "dealmaker_demo_state";
-
-const EMPTY_STATE: DemoState = { deals: [], currentTeam: undefined };
-
-function loadState(): DemoState {
-  try {
-    const raw = sessionStorage.getItem(STORAGE_KEY);
-    if (!raw) return EMPTY_STATE;
-    return JSON.parse(raw) as DemoState;
-  } catch {
-    return EMPTY_STATE;
-  }
-}
+import {
+  createContext,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
+import type {
+  ChatMessage,
+  Deal,
+  Email,
+  Evaluation,
+  ExtractedInfo,
+  SessionResponse,
+  Team,
+  User,
+} from "../data/types";
+import { apiFetch } from "../services/api";
 
 export type DemoContextValue = {
   deals: Deal[];
-  currentTeam?: Team;
-  login: (team: Team) => void;
-  logout: () => void;
+  currentUser?: User;
+  devMode: boolean;
+  sessionLoading: boolean;
+  loading: boolean;
+  login: (team: Team) => Promise<User>;
+  logout: () => Promise<void>;
+  refreshDeals: () => Promise<void>;
+  loadDeal: (id: string) => Promise<Deal>;
   createDeal: (input: {
     rawConversation: string;
     extracted: ExtractedInfo;
     chatHistory: ChatMessage[];
     email: Email;
-  }) => Deal;
+    validationIssues: string[];
+    validationMode: "live_ai" | "rules_only";
+    validationFailure?: string;
+    bandRoomId?: string;
+  }) => Promise<Deal>;
   getDeal: (id: string) => Deal | undefined;
-  updateDealEmail: (id: string, email: Email) => void;
-  submitToBusiness: (id: string) => void;
+  updateDealEmail: (id: string, email: Email, expectedVersion: number) => Promise<Deal>;
+  submitToBusiness: (
+    id: string,
+    expectedVersion: number,
+    acknowledgeWarnings: boolean,
+  ) => Promise<Deal>;
+  withdrawForRevision: (id: string, expectedVersion: number) => Promise<Deal>;
+  evaluateDeal: (id: string) => Promise<Evaluation>;
   approveDeal: (
     id: string,
-    evaluation: { riskScore: Deal["riskScore"]; complianceNotes: string[]; contractContent: string },
-  ) => void;
+    expectedVersion: number,
+    evaluationId: string,
+    overrideReason?: string,
+  ) => Promise<Deal>;
   rejectDeal: (
     id: string,
-    evaluation: { riskScore: Deal["riskScore"]; complianceNotes: string[]; rejectReason: string },
-  ) => void;
-  resetDemo: () => void;
+    expectedVersion: number,
+    evaluationId: string,
+    category: string,
+    details: string,
+  ) => Promise<Deal>;
+  archiveDeal: (id: string, expectedVersion: number) => Promise<void>;
+  clearAllDeals: () => Promise<void>;
+  signAgreement: (
+    id: string,
+    expectedVersion: number,
+    typedName: string,
+  ) => Promise<Deal>;
 };
 
+// Context and provider stay together to preserve the existing import boundary.
+// eslint-disable-next-line react-refresh/only-export-components
 export const DemoContext = createContext<DemoContextValue | null>(null);
 
 export function DemoProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<DemoState>(loadState);
+  const [deals, setDeals] = useState<Deal[]>([]);
+  const [currentUser, setCurrentUser] = useState<User>();
+  const [devMode, setDevMode] = useState(false);
+  const [sessionLoading, setSessionLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+
+  const replaceDeal = useCallback((deal: Deal) => {
+    setDeals((current) => {
+      const exists = current.some((item) => item.id === deal.id);
+      return exists
+        ? current.map((item) => (item.id === deal.id ? deal : item))
+        : [deal, ...current];
+    });
+  }, []);
+
+  const refreshDeals = useCallback(async () => {
+    setLoading(true);
+    try {
+      const result = await apiFetch<{ deals: Deal[] }>("/api/deals");
+      setDeals(result.deals);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const loadDeal = useCallback(async (id: string) => {
+    const result = await apiFetch<{ deal: Deal }>(`/api/deals/${id}`);
+    replaceDeal(result.deal);
+    return result.deal;
+  }, [replaceDeal]);
+
+  const evaluateDealAction = useCallback(async (id: string) => {
+    const result = await apiFetch<{ evaluation: Evaluation }>(
+      `/api/deals/${id}/evaluate`,
+      { method: "POST" },
+    );
+    await loadDeal(id);
+    return result.evaluation;
+  }, [loadDeal]);
 
   useEffect(() => {
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }, [state]);
+    let active = true;
+    apiFetch<SessionResponse>("/api/auth/session")
+      .then(async (session) => {
+        if (!active) return;
+        setDevMode(session.devMode);
+        setCurrentUser(session.user);
+        if (session.user) await refreshDeals();
+      })
+      .finally(() => {
+        if (active) setSessionLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [refreshDeals]);
 
-  function patchDeal(id: string, patch: Partial<Deal>) {
-    setState((prev) => ({
-      ...prev,
-      deals: prev.deals.map((d) =>
-        d.id === id ? { ...d, ...patch, updatedAt: new Date().toISOString() } : d,
-      ),
-    }));
-  }
+  const value = useMemo<DemoContextValue>(
+    () => ({
+      deals,
+      currentUser,
+      devMode,
+      sessionLoading,
+      loading,
 
-  const value: DemoContextValue = {
-    deals: state.deals,
-    currentTeam: state.currentTeam,
+      login: async (team) => {
+        const session = await apiFetch<SessionResponse>("/api/auth/session", {
+          method: "POST",
+          body: JSON.stringify({ team }),
+        });
+        if (!session.user) throw new Error("Login did not return a user.");
+        setCurrentUser(session.user);
+        setDevMode(session.devMode);
+        await refreshDeals();
+        return session.user;
+      },
 
-    login: (team) => setState((prev) => ({ ...prev, currentTeam: team })),
-    logout: () => setState((prev) => ({ ...prev, currentTeam: undefined })),
+      logout: async () => {
+        await apiFetch("/api/auth/session", { method: "DELETE" });
+        setCurrentUser(undefined);
+        setDeals([]);
+      },
 
-    createDeal: ({ rawConversation, extracted, chatHistory, email }) => {
-      const now = new Date().toISOString();
-      const deal: Deal = {
-        id: `deal-${Date.now()}`,
-        status: "draft",
-        rawConversation,
-        extracted,
-        chatHistory,
-        email,
-        createdAt: now,
-        updatedAt: now,
-      };
-      setState((prev) => ({ ...prev, deals: [...prev.deals, deal] }));
-      return deal;
-    },
+      refreshDeals,
 
-    getDeal: (id) => state.deals.find((d) => d.id === id),
+      loadDeal,
 
-    updateDealEmail: (id, email) => patchDeal(id, { email }),
+      createDeal: async (input) => {
+        const result = await apiFetch<{ deal: Deal }>("/api/deals", {
+          method: "POST",
+          body: JSON.stringify(input),
+        });
+        replaceDeal(result.deal);
+        return result.deal;
+      },
 
-    submitToBusiness: (id) => patchDeal(id, { status: "pending_business_review", rejectReason: undefined }),
+      getDeal: (id) => deals.find((deal) => deal.id === id),
 
-    approveDeal: (id, { riskScore, complianceNotes, contractContent }) =>
-      patchDeal(id, { status: "approved", riskScore, complianceNotes, contractContent }),
+      updateDealEmail: async (id, email, expectedVersion) => {
+        const result = await apiFetch<{ deal: Deal }>(`/api/deals/${id}/email`, {
+          method: "PATCH",
+          body: JSON.stringify({ email, expectedVersion }),
+        });
+        replaceDeal(result.deal);
+        return result.deal;
+      },
 
-    rejectDeal: (id, { riskScore, complianceNotes, rejectReason }) =>
-      patchDeal(id, { status: "rejected", riskScore, complianceNotes, rejectReason }),
+      submitToBusiness: async (id, expectedVersion, acknowledgeWarnings) => {
+        const result = await apiFetch<{ deal: Deal }>(`/api/deals/${id}/submit`, {
+          method: "POST",
+          body: JSON.stringify({ expectedVersion, acknowledgeWarnings }),
+        });
+        replaceDeal(result.deal);
+        return result.deal;
+      },
 
-    resetDemo: () => {
-      sessionStorage.removeItem(STORAGE_KEY);
-      setState(EMPTY_STATE);
-    },
-  };
+      withdrawForRevision: async (id, expectedVersion) => {
+        const result = await apiFetch<{ deal: Deal }>(`/api/deals/${id}/withdraw`, {
+          method: "POST",
+          body: JSON.stringify({ expectedVersion }),
+        });
+        replaceDeal(result.deal);
+        return result.deal;
+      },
+
+      evaluateDeal: evaluateDealAction,
+
+      approveDeal: async (
+        id,
+        expectedVersion,
+        evaluationId,
+        overrideReason,
+      ) => {
+        const result = await apiFetch<{ deal: Deal }>(`/api/deals/${id}/approve`, {
+          method: "POST",
+          body: JSON.stringify({
+            expectedVersion,
+            evaluationId,
+            overrideReason: overrideReason || undefined,
+          }),
+        });
+        replaceDeal(result.deal);
+        return result.deal;
+      },
+
+      rejectDeal: async (
+        id,
+        expectedVersion,
+        evaluationId,
+        category,
+        details,
+      ) => {
+        const result = await apiFetch<{ deal: Deal }>(`/api/deals/${id}/reject`, {
+          method: "POST",
+          body: JSON.stringify({
+            expectedVersion,
+            evaluationId,
+            category,
+            details,
+          }),
+        });
+        replaceDeal(result.deal);
+        return result.deal;
+      },
+
+      archiveDeal: async (id, expectedVersion) => {
+        await apiFetch(`/api/deals/${id}/archive`, {
+          method: "POST",
+          body: JSON.stringify({ expectedVersion }),
+        });
+        setDeals((current) => current.filter((deal) => deal.id !== id));
+      },
+
+      clearAllDeals: async () => {
+        await apiFetch("/api/deals", { method: "DELETE" });
+        setDeals([]);
+      },
+
+      signAgreement: async (id, expectedVersion, typedName) => {
+        const result = await apiFetch<{ deal: Deal }>(`/api/deals/${id}/sign`, {
+          method: "POST",
+          body: JSON.stringify({ expectedVersion, typedName, consent: true }),
+        });
+        replaceDeal(result.deal);
+        return result.deal;
+      },
+    }),
+    [
+      currentUser,
+      deals,
+      devMode,
+      evaluateDealAction,
+      loading,
+      loadDeal,
+      refreshDeals,
+      replaceDeal,
+      sessionLoading,
+    ],
+  );
 
   return <DemoContext.Provider value={value}>{children}</DemoContext.Provider>;
 }

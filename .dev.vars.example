@@ -1,0 +1,12 @@
+# Copy to .dev.vars for local Worker development. Never commit .dev.vars.
+FEATHERLESS_API_KEY=
+ADMIN_TOKEN=replace-with-a-long-random-value
+AUTH_SECRET=replace-with-at-least-32-random-characters
+
+# Production Cloudflare Access verification. The team domain is similar to
+# your-team.cloudflareaccess.com and ACCESS_AUD is the Access application AUD.
+ACCESS_TEAM_DOMAIN=
+ACCESS_AUD=
+
+# Create all seven Remote Agents in Band, then store their IDs and agent API keys here.
+BAND_AGENTS_JSON={"sales_parser":{"id":"","key":"","name":"Sales Parsing Agent","handle":"sales.parser"},"sales_enrichment":{"id":"","key":"","name":"Sales Enrichment Agent","handle":"sales.enrichment"},"sales_construction":{"id":"","key":"","name":"Sales Construction Agent","handle":"sales.construction"},"sales_validation":{"id":"","key":"","name":"Sales Validation Agent","handle":"sales.validation"},"business_parser":{"id":"","key":"","name":"Business Parsing Agent","handle":"business.parser"},"business_evaluation":{"id":"","key":"","name":"Business Evaluation Agent","handle":"business.evaluation"},"business_judgment":{"id":"","key":"","name":"Business Judgment Agent","handle":"business.judgment"}}
