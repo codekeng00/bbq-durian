@@ -128,7 +128,7 @@ export default function AnalysisChatPage() {
     const url = URL.createObjectURL(new Blob([contractDocument], { type: "text/plain" }));
     const anchor = document.createElement("a");
     anchor.href = url;
-    anchor.download = `${deal.extracted.clientName ?? "contract"}-commercial-contract.txt`;
+    anchor.download = `${deal?.extracted.clientName ?? "contract"}-commercial-contract.txt`;
     anchor.click();
     URL.revokeObjectURL(url);
   }
