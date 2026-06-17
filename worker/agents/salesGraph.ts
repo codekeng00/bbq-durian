@@ -2,7 +2,7 @@ import { Annotation, END, START, StateGraph } from "@langchain/langgraph";
 import { z } from "zod";
 import { createBandRoom, handoff } from "../lib/band";
 import { knowledgeContext, retrieveKnowledge } from "../lib/rag";
-import { structuredCompletion, structuredCompletionDetailed } from "../lib/llm";
+import { structuredCompletion, structuredCompletionDetailed, textCompletion } from "../lib/llm";
 import { recordAgentEvent } from "../lib/repository";
 import type { Email, Env, ExtractedInfo } from "../types";
 
@@ -162,15 +162,28 @@ export async function runSalesGraph(
         provider: "featherless",
         output: parsed,
       });
-      const parserMsg = [
-        `I've completed my analysis of the sales conversation.`,
-        parsed.clientName ? `Client identified: ${parsed.clientName}.` : `Client name could not be determined — please flag for manual review.`,
-        parsed.decisionMaker ? `Decision maker: ${parsed.decisionMaker}.` : null,
-        parsed.contactEmail ? `Contact email: ${parsed.contactEmail}.` : null,
-        parsed.value ? `Deal value: ¥${parsed.value.toLocaleString()}.` : `Deal value not specified — treat as TBD.`,
-        parsed.description ? `Scope: ${parsed.description}.` : null,
-        `All extractable facts have been validated against the conversation. Passing to Sales Enrichment — please retrieve relevant product knowledge, pricing policies, and precedent cases to strengthen the proposal context.`,
-      ].filter(Boolean).join(" ");
+      const parserMsg = await textCompletion(
+        env,
+        [
+          {
+            role: "system",
+            content:
+              "You are DealMaker's Sales Parsing Agent. Write a short, natural, first-person handoff message to the Sales Enrichment Agent summarising what you extracted from the conversation. Mention the client, deal value, scope, decision maker, and contact email if available. End by telling the Enrichment Agent what you need from them. Write 3–4 sentences, no bullet points, no JSON.",
+          },
+          {
+            role: "user",
+            content: `Extracted facts: ${JSON.stringify(parsed)}`,
+          },
+        ],
+        () =>
+          [
+            `I've completed my analysis of the sales conversation.`,
+            parsed.clientName ? `Client: ${parsed.clientName}.` : `Client name could not be confirmed.`,
+            parsed.value ? `Deal value: ¥${parsed.value.toLocaleString()}.` : `Deal value not specified.`,
+            parsed.description ?? "",
+            `Passing to Sales Enrichment — please retrieve relevant product knowledge and pricing policies.`,
+          ].filter(Boolean).join(" "),
+      );
       const coordinationContext = await handoff(env, room, "sales_parser", "sales_enrichment", parserMsg);
       emit("Sales Parsing Agent", "Sales Enrichment Agent", parserMsg);
       return { extracted: parsed, roomId: workflowId, coordinationContext };
@@ -186,17 +199,27 @@ export async function runSalesGraph(
         provider: "keyword-fallback",
         sources: rows.map((row) => row.title),
       });
-      const sourceList = rows.length > 0
-        ? `Retrieved ${rows.length} relevant knowledge source(s): ${rows.map((r) => r.title).join("; ")}.`
-        : `No matching knowledge sources found in the database — construction should proceed using the deal facts alone.`;
-      const enrichMsg = [
-        `Knowledge enrichment complete.`,
-        sourceList,
-        rows.length > 0
-          ? `The retrieved materials cover applicable product specs, pricing policies, and past deal precedents that should inform the proposal.`
-          : null,
-        `Passing full context to Sales Construction — please draft a professional, personalised proposal email that accurately reflects the client's requirements and stays grounded in the retrieved policy knowledge.`,
-      ].filter(Boolean).join(" ");
+      const enrichMsg = await textCompletion(
+        env,
+        [
+          {
+            role: "system",
+            content:
+              "You are DealMaker's Sales Enrichment Agent. Write a short, natural, first-person handoff message to the Sales Construction Agent summarising the knowledge you retrieved. Mention the sources by name if available, explain what they cover, and tell the Construction Agent how to use this context in the proposal. Write 3–4 sentences, no bullet points, no JSON.",
+          },
+          {
+            role: "user",
+            content:
+              rows.length > 0
+                ? `Retrieved sources: ${rows.map((r) => r.title).join("; ")}.\nContext summary: ${context.slice(0, 400)}`
+                : `No knowledge sources matched this deal. Proceeding with deal facts only.`,
+          },
+        ],
+        () =>
+          rows.length > 0
+            ? `Knowledge enrichment complete. Retrieved ${rows.length} source(s): ${rows.map((r) => r.title).join("; ")}. Passing full context to Sales Construction for proposal drafting.`
+            : `No matching knowledge sources found. Sales Construction should proceed using the deal facts alone.`,
+      );
       const coordinationContext = await handoff(env, room, "sales_enrichment", "sales_construction", enrichMsg);
       emit("Sales Enrichment Agent", "Sales Construction Agent", enrichMsg);
       return { knowledge: context, coordinationContext };
@@ -241,12 +264,22 @@ export async function runSalesGraph(
         provider: "featherless",
         subject: email.subject,
       });
-      const constructMsg = [
-        `Proposal draft complete.`,
-        `Subject: "${email.subject}", addressed to ${email.to || decisionMaker} at ${client}.`,
-        `The email covers the key deal terms, positions our offering in line with the client's stated requirements, and references only commitments supported by internal policy.`,
-        `Handing off to Sales Validation — please review for compliance, factual accuracy, unsupported promises, and professional tone before this proposal moves to human sign-off.`,
-      ].join(" ");
+      const constructMsg = await textCompletion(
+        env,
+        [
+          {
+            role: "system",
+            content:
+              "You are DealMaker's Sales Construction Agent. Write a short, natural, first-person handoff message to the Sales Validation Agent describing the proposal email you just drafted. Mention the client, subject line, key deal points covered, and what you need the Validation Agent to check. Write 3–4 sentences, no bullet points, no JSON.",
+          },
+          {
+            role: "user",
+            content: `Client: ${client}. Decision maker: ${decisionMaker}. Subject: "${email.subject}". Recipient: ${email.to}. Email body (first 300 chars): ${email.body.slice(0, 300)}`,
+          },
+        ],
+        () =>
+          `Proposal draft complete. Subject: "${email.subject}", addressed to ${email.to || decisionMaker} at ${client}. Handing off to Sales Validation for compliance and quality review.`,
+      );
       const coordinationContext = await handoff(env, room, "sales_construction", "sales_validation", constructMsg);
       emit("Sales Construction Agent", "Sales Validation Agent", constructMsg);
       return { email, coordinationContext };
@@ -281,15 +314,27 @@ export async function runSalesGraph(
         mode: completion.mode,
         failureReason: completion.failureReason,
       });
-      const issuesSummary = result.issues.length === 0
-        ? `No compliance issues were detected — the proposal is clean and ready to proceed.`
-        : `${result.issues.length} issue(s) were identified and corrected: ${result.issues.join("; ")}.`;
-      const validMsg = [
-        `Compliance validation complete.`,
-        issuesSummary,
-        `The proposal has been reviewed for factual accuracy, policy adherence, unsupported commitments, and professional formatting.`,
-        `This deal is now queued for human sales review and sign-off before the email is sent to the client.`,
-      ].join(" ");
+      const validMsg = await textCompletion(
+        env,
+        [
+          {
+            role: "system",
+            content:
+              "You are DealMaker's Sales Validation Agent. Write a short, natural, first-person summary message describing the outcome of your compliance review. Mention whether issues were found, briefly describe any corrections made, confirm the proposal is ready for human review, and state what happens next. Write 3–4 sentences, no bullet points, no JSON.",
+          },
+          {
+            role: "user",
+            content:
+              result.issues.length === 0
+                ? `No issues found. The proposal passed all compliance checks.`
+                : `Issues found and corrected: ${result.issues.join("; ")}.`,
+          },
+        ],
+        () =>
+          result.issues.length === 0
+            ? `Compliance validation complete. No issues detected — the proposal is clean and ready for human sales review and sign-off.`
+            : `Validation complete. ${result.issues.length} issue(s) corrected: ${result.issues.join("; ")}. The proposal is now ready for human review.`,
+      );
       await handoff(env, room, "sales_validation", "sales_parser", validMsg);
       emit("Sales Validation Agent", "Sales Parsing Agent", validMsg);
       return {

@@ -167,6 +167,49 @@ export async function structuredCompletionDetailed<T>(
   }
 }
 
+export async function textCompletion(
+  env: Env,
+  messages: Message[],
+  fallback: () => string,
+): Promise<string> {
+  const config: ProviderConfig = {
+    apiKey: env.FEATHERLESS_API_KEY,
+    endpoint: "https://api.featherless.ai/v1/chat/completions",
+    model: env.FEATHERLESS_MODEL ?? "Qwen/Qwen2.5-7B-Instruct",
+    label: "Featherless",
+  };
+
+  if (!config.apiKey) return fallback();
+
+  try {
+    const response = await fetch(config.endpoint, {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${config.apiKey}`,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        model: config.model,
+        temperature: 0.6,
+        max_tokens: 300,
+        messages,
+      }),
+    });
+
+    if (!response.ok) throw new Error(`${config.label} returned ${response.status}`);
+
+    const payload = (await response.json()) as {
+      choices?: Array<{ message?: { content?: string } }>;
+    };
+    const content = payload.choices?.[0]?.message?.content?.trim();
+    if (!content) throw new Error("No content returned.");
+    return content;
+  } catch (error) {
+    console.error(JSON.stringify({ message: "textCompletion fallback", error: String(error) }));
+    return fallback();
+  }
+}
+
 // Embeddings provider removed (no AI/ML API). Returning null makes RAG fall
 // back to D1 keyword retrieval (see worker/lib/rag.ts).
 export async function embed(_env: Env, _inputs: string[]): Promise<number[][] | null> {
