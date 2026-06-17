@@ -2,8 +2,8 @@ import type { Email, ExtractedInfo } from "../../data/types";
 
 export type AgentStep = {
   agentName: string;
-  stage: string;
-  summary: string;
+  to: string;
+  message: string;
 };
 
 export type GenerateEmailResult = {

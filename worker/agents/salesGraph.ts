@@ -129,7 +129,7 @@ const SalesState = Annotation.Root({
   coordinationContext: Annotation<string>,
 });
 
-export type AgentEmit = (agentName: string, stage: string, summary: string) => void;
+export type AgentEmit = (agentName: string, to: string, message: string) => void;
 
 export async function runSalesGraph(
   env: Env,
@@ -162,14 +162,9 @@ export async function runSalesGraph(
         provider: "featherless",
         output: parsed,
       });
-      emit("Sales Parser", "parsed", `Extracted deal facts for ${parsed.clientName ?? "client"}`);
-      const coordinationContext = await handoff(
-        env,
-        room,
-        "sales_parser",
-        "sales_enrichment",
-        `Extracted deal facts: ${JSON.stringify(parsed)}`,
-      );
+      const parserMsg = `Extracted deal facts: ${JSON.stringify(parsed)}`;
+      const coordinationContext = await handoff(env, room, "sales_parser", "sales_enrichment", parserMsg);
+      emit("Sales Parsing Agent", "Sales Enrichment Agent", parserMsg);
       return { extracted: parsed, roomId: workflowId, coordinationContext };
     })
     .addNode("enrichment", async (state) => {
@@ -183,14 +178,9 @@ export async function runSalesGraph(
         provider: "keyword-fallback",
         sources: rows.map((row) => row.title),
       });
-      emit("Sales Enrichment", "enriched", `Retrieved ${rows.length} knowledge source(s)`);
-      const coordinationContext = await handoff(
-        env,
-        room,
-        "sales_enrichment",
-        "sales_construction",
-        `RAG enrichment complete. Sources: ${rows.map((row) => row.title).join(", ")}`,
-      );
+      const enrichMsg = `RAG enrichment complete. Sources: ${rows.map((row) => row.title).join(", ")}`;
+      const coordinationContext = await handoff(env, room, "sales_enrichment", "sales_construction", enrichMsg);
+      emit("Sales Enrichment Agent", "Sales Construction Agent", enrichMsg);
       return { knowledge: context, coordinationContext };
     })
     .addNode("construction", async (state) => {
@@ -233,14 +223,9 @@ export async function runSalesGraph(
         provider: "featherless",
         subject: email.subject,
       });
-      emit("Sales Construction", "drafted", `Draft proposal ready: ${email.subject}`);
-      const coordinationContext = await handoff(
-        env,
-        room,
-        "sales_construction",
-        "sales_validation",
-        `Proposal draft ready for compliance validation: ${email.subject}`,
-      );
+      const constructMsg = `Proposal draft ready for compliance validation: ${email.subject}`;
+      const coordinationContext = await handoff(env, room, "sales_construction", "sales_validation", constructMsg);
+      emit("Sales Construction Agent", "Sales Validation Agent", constructMsg);
       return { email, coordinationContext };
     })
     .addNode("validation", async (state) => {
@@ -273,14 +258,9 @@ export async function runSalesGraph(
         mode: completion.mode,
         failureReason: completion.failureReason,
       });
-      emit("Sales Validation", "validated", `Validation complete — ${result.issues.length === 0 ? "no issues" : result.issues.join("; ")}`);
-      await handoff(
-        env,
-        room,
-        "sales_validation",
-        "sales_parser",
-        `Validation complete. Human sales review is required. Issues: ${result.issues.join("; ") || "none"}`,
-      );
+      const validMsg = `Validation complete. Human sales review is required. Issues: ${result.issues.join("; ") || "none"}`;
+      await handoff(env, room, "sales_validation", "sales_parser", validMsg);
+      emit("Sales Validation Agent", "Sales Parsing Agent", validMsg);
       return {
         email: result.email,
         validationIssues: result.issues,
