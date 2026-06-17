@@ -34,20 +34,10 @@ export default function ContractApprovalPage() {
     let active = true;
     setLoading(true);
     loadDeal(dealId)
-      .then(async (loaded) => {
+      .then((loaded) => {
         if (!active) return;
         setDeal(loaded);
         setEvaluation(loaded.evaluation);
-        if (
-          loaded.status === "pending_business_review" &&
-          !loaded.evaluation
-        ) {
-          setEvaluating(true);
-          const result = await evaluateDealStream(loaded.id, (step) => {
-            if (active) setAgentSteps((prev) => [...prev, step]);
-          });
-          if (active) setEvaluation(result);
-        }
       })
       .catch((caught) => {
         if (active) {
@@ -55,49 +45,31 @@ export default function ContractApprovalPage() {
         }
       })
       .finally(() => {
-        if (active) {
-          setLoading(false);
-          setEvaluating(false);
-        }
+        if (active) setLoading(false);
       });
     return () => {
       active = false;
     };
   }, [dealId, loadDeal]);
 
+  async function startEvaluation() {
+    if (!deal || evaluating) return;
+    setEvaluating(true);
+    setError("");
+    try {
+      const result = await evaluateDealStream(deal.id, (step) => {
+        setAgentSteps((prev) => [...prev, step]);
+      });
+      setEvaluation(result);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "AI review failed.");
+    } finally {
+      setEvaluating(false);
+    }
+  }
+
   if (loading) {
-    return (
-      <main className="contract-shell">
-        <header className="contract-brand">
-          DealMaker
-          <Link to="/active-pipelines-business">Back to Pipelines</Link>
-        </header>
-        <section className="evaluation-stream-page">
-          <h2>Agent Review in Progress</h2>
-          <p className="evaluation-stream-sub">Our agents are evaluating this proposal. Results will appear when they finish.</p>
-          <div className="evaluation-stream-feed">
-            {agentSteps.map((step, i) => (
-              <div key={i} className="band-msg">
-                <span className="band-msg-sender">{step.agentName}</span>
-                <div className="band-msg-bubble">
-                  <span className="band-msg-mention">@{step.to}</span>
-                  {" "}{step.message}
-                </div>
-              </div>
-            ))}
-            <div className="band-msg">
-              <span className="band-msg-sender">
-                {agentSteps.length === 0 ? "Pipeline" : agentSteps[agentSteps.length - 1]?.agentName}
-              </span>
-              <div className="band-msg-bubble band-msg-bubble--pending">
-                <span className="agent-typing"><span /><span /><span /></span>
-                <span>{agentSteps.length === 0 ? "Starting review pipeline..." : "Thinking..."}</span>
-              </div>
-            </div>
-          </div>
-        </section>
-      </main>
-    );
+    return <main className="page-message">Loading submission...</main>;
   }
 
   if (!deal || !deal.email) {
@@ -232,8 +204,8 @@ export default function ContractApprovalPage() {
               </>
             ) : (
               <>
-                <h2>SUBMITTED PROPOSAL</h2>
-                <p>To: {deal.email.to}</p>
+                <h2>DEAL SUBMISSION REPORT</h2>
+                <p>To: Business Review Team</p>
                 <h3>{deal.email.subject}</h3>
                 {deal.email.body.split("\n").map((line, index) => (
                   <p key={`${index}-${line}`}>{line || " "}</p>
@@ -265,6 +237,13 @@ export default function ContractApprovalPage() {
                   <span>{agentSteps.length === 0 ? "Starting review pipeline..." : "Thinking..."}</span>
                 </div>
               </div>
+            </div>
+          ) : !evaluation && isPending ? (
+            <div className="pre-review-prompt">
+              <p>Review the submission on the left, then run the AI policy and risk check when you're ready.</p>
+              <button className="primary-button" type="button" onClick={startEvaluation}>
+                Start AI Review
+              </button>
             </div>
           ) : evaluation ? (
             <>
