@@ -12,7 +12,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "dev:full": "npm run build && wrangler dev",
-    "dev:demo": "npm run build && wrangler dev --local --port 8787 --var DEV_AUTH_ENABLED:true",
+    "dev:demo": "npm run build && npx wrangler dev --local --port 8787 --var DEV_AUTH_ENABLED:true",
     "db:migrate:local": "wrangler d1 migrations apply DB --local",
     "db:migrate:remote": "wrangler d1 migrations apply DB --remote",
     "types:worker": "wrangler types worker-configuration.d.ts",
