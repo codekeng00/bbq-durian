@@ -48,6 +48,32 @@ import type {
   ExtractedInfo,
 } from "./types";
 
+function createSseStream() {
+  const { readable, writable } = new TransformStream<Uint8Array, Uint8Array>();
+  const writer = writable.getWriter();
+  const encoder = new TextEncoder();
+
+  function emit(event: string, data: unknown) {
+    void writer.write(
+      encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`),
+    );
+  }
+
+  function close() {
+    void writer.close();
+  }
+
+  const response = new Response(readable, {
+    headers: {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      "X-Accel-Buffering": "no",
+    },
+  });
+
+  return { response, emit, close };
+}
+
 const REQUIRED_FIELDS: Array<keyof ExtractedInfo> = [
   "clientName",
   "value",
@@ -260,13 +286,27 @@ async function api(request: Request, env: Env): Promise<Response> {
     if (user.team !== "sales") throw new HttpError(403, "sales role required.");
     await enforceRateLimit(env, user, "generate-email", 10, 60);
     const body = await readJson(request, generateEmailSchema, 150_000);
-    const result = await runSalesGraph(
-      env,
-      body.info,
-      body.rawConversation,
-      { organizationId: user.organizationId },
-    );
-    return json(result);
+
+    const { response, emit, close } = createSseStream();
+
+    void (async () => {
+      try {
+        const result = await runSalesGraph(
+          env,
+          body.info,
+          body.rawConversation,
+          { organizationId: user.organizationId },
+          (agentName, stage, summary) => emit("agent_step", { agentName, stage, summary }),
+        );
+        emit("done", result);
+      } catch (err) {
+        emit("error", { message: err instanceof Error ? err.message : "Unknown error" });
+      } finally {
+        close();
+      }
+    })();
+
+    return response;
   }
 
   const emailDealId = routeParam(pathname, /^\/api\/deals\/([^/]+)\/email$/);
