@@ -24,11 +24,23 @@ export default function EmptyPipelineState({ titleId, onNew }: EmptyPipelineStat
         </div>
       </div>
       <div className="empty-copy">
-        <h2 id={titleId}>No Active Pipelines Found</h2>
-        <p>
-          Your pipeline is currently quiet. Start a new conversation analysis or
-          upload a sales call to see DealMaker&rsquo;s intelligence in action.
-        </p>
+        {titleId === "business-empty-title" ? (
+          <>
+            <h2 id={titleId}>No Proposals Yet</h2>
+            <p>
+              There are no proposals awaiting your review. Once the sales team
+              submits a deal for approval, it will appear here.
+            </p>
+          </>
+        ) : (
+          <>
+            <h2 id={titleId}>No Active Pipelines Found</h2>
+            <p>
+              Your pipeline is currently quiet. Start a new conversation analysis or
+              upload a sales call to see DealMaker&rsquo;s intelligence in action.
+            </p>
+          </>
+        )}
         {onNew && (
           <div className="empty-action">
             <button className="new-button" type="button" onClick={onNew}>
