@@ -27,7 +27,10 @@ const ValidationSchema = z.object({
 });
 
 function extractValue(text: string): number | undefined {
-  const match = text.match(/\$\s?([\d,]+(?:\.\d+)?)\s?([kKmM])?/);
+  // Match $1,000 / ¥210,000 / 210,000 RMB / 210000 CNY
+  const match =
+    text.match(/(?:\$|¥|￥)\s?([\d,]+(?:\.\d+)?)\s?([kKmM])?/) ||
+    text.match(/([\d,]+(?:\.\d+)?)\s?(?:RMB|CNY|USD|EUR)(?:\b)/);
   if (!match) return undefined;
   let value = Number(match[1].replace(/,/g, ""));
   if (match[2]?.toLowerCase() === "k") value *= 1_000;
