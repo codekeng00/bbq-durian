@@ -9,12 +9,12 @@ type DemoUserDisplay = {
 export const DEMO_USERS: Record<Team, DemoUserDisplay> = {
   sales: {
     name: "alice",
-    email: "@dealnaker.com",
+    email: "@dealmaker.com",
     team: "sales",
   },
   business: {
     name: "bob",
-    email: "@dealnaker.com",
+    email: "@dealmaker.com",
     team: "business",
   },
 };

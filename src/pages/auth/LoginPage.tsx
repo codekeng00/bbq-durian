@@ -137,7 +137,7 @@ export default function LoginPage() {
                   name="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@dealnaker.com"
+                  placeholder="you@dealmaker.com"
                 />
               </label>
               <div className="form-field">
