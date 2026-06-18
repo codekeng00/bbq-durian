@@ -155,7 +155,8 @@ export function DemoProvider({ children }: { children: ReactNode }) {
       },
 
       logout: async () => {
-        await apiFetch("/api/auth/session", { method: "DELETE" });
+        try { await apiFetch("/api/auth/session", { method: "DELETE" }); } catch {}
+        localStorage.removeItem("dm_token");
         setCurrentUser(undefined);
         setDeals([]);
       },
