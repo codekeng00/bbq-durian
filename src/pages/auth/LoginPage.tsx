@@ -24,6 +24,7 @@ export default function LoginPage() {
 
   function handleRoleChange(newRole: Team) {
     setRole(newRole);
+    if (!email.includes("@")) setEmail(DEMO_USERS[newRole].email);
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
