@@ -1,3 +1,7 @@
+const API_BASE = import.meta.env.PROD
+  ? "https://dealmaker-api.bbq-durian.workers.dev"
+  : "";
+
 export class ApiError extends Error {
   status: number;
   requestId?: string;
@@ -12,7 +16,7 @@ export class ApiError extends Error {
 function getToken(): string | null {
   try {
     const raw = localStorage.getItem("dm_token");
-    if (raw && raw.startsWith("eyJ")) return raw; // only real JWTs, skip local_ tokens
+    if (raw && raw.startsWith("eyJ")) return raw;
   } catch {}
   return null;
 }
@@ -27,7 +31,7 @@ export async function apiFetch<T>(
   const token = getToken();
   if (token) headers.set("authorization", "Bearer " + token);
 
-  const response = await fetch(path, { ...init, headers });
+  const response = await fetch(API_BASE + path, { ...init, headers });
   const payload = (await response.json().catch(() => ({}))) as T & {
     error?: string;
   };

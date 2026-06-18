@@ -8,8 +8,8 @@ const DEMO_TOAST = "This feature is not available in the demo version.";
 
 export default function LoginPage() {
   const [role, setRole] = useState<Team>("sales");
-  const [email, setEmail] = useState(DEMO_USERS[role].email);
-  const [password, setPassword] = useState("demo1234");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("123456");
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -24,7 +24,6 @@ export default function LoginPage() {
 
   function handleRoleChange(newRole: Team) {
     setRole(newRole);
-    setEmail(DEMO_USERS[newRole].email);
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -137,7 +136,7 @@ export default function LoginPage() {
                   name="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@company.com"
+                  placeholder="you@dealnaker.com"
                 />
               </label>
               <div className="form-field">
