@@ -8,6 +8,8 @@ const DEMO_TOAST = "This feature is not available in the demo version.";
 
 export default function LoginPage() {
   const [role, setRole] = useState<Team>("sales");
+  const [email, setEmail] = useState(DEMO_USERS[role].email);
+  const [password, setPassword] = useState("demo1234");
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -20,14 +22,17 @@ export default function LoginPage() {
     setTimeout(() => setToast(""), 3000);
   }
 
-  const email = DEMO_USERS[role].email;
+  function handleRoleChange(newRole: Team) {
+    setRole(newRole);
+    setEmail(DEMO_USERS[newRole].email);
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSubmitting(true);
     setError("");
     try {
-      const user = await login(role);
+      const user = await login(email, password);
       navigate(
         user.team === "sales" ? "/active-pipelines-sales" : "/active-pipelines-business",
       );
@@ -102,7 +107,7 @@ export default function LoginPage() {
                 className={`role-button ${role === "sales" ? "is-active" : ""}`}
                 type="button"
                 aria-pressed={role === "sales"}
-                onClick={() => setRole("sales")}
+                onClick={() => handleRoleChange("sales")}
               >
                 <span className="role-button-icon">
                   <img src="/assets/sales-role.svg" alt="" aria-hidden="true" />
@@ -114,7 +119,7 @@ export default function LoginPage() {
                 className={`role-button ${role === "business" ? "is-active" : ""}`}
                 type="button"
                 aria-pressed={role === "business"}
-                onClick={() => setRole("business")}
+                onClick={() => handleRoleChange("business")}
               >
                 <span className="role-button-icon">
                   <img src="/assets/business-role.svg" alt="" aria-hidden="true" />
@@ -131,7 +136,7 @@ export default function LoginPage() {
                   type="email"
                   name="email"
                   value={email}
-                  readOnly
+                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@company.com"
                 />
               </label>
@@ -145,8 +150,8 @@ export default function LoginPage() {
                     id="password"
                     type={showPassword ? "text" : "password"}
                     name="password"
-                    value="demo1234"
-                    readOnly
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
                   />
                   <button

@@ -13,7 +13,6 @@ import type {
   Evaluation,
   ExtractedInfo,
   SessionResponse,
-  Team,
   User,
 } from "../data/types";
 import { apiFetch } from "../services/api";
@@ -24,7 +23,7 @@ export type DemoContextValue = {
   devMode: boolean;
   sessionLoading: boolean;
   loading: boolean;
-  login: (team: Team) => Promise<User>;
+  login: (email: string, password: string) => Promise<User>;
   logout: () => Promise<void>;
   refreshDeals: () => Promise<void>;
   loadDeal: (id: string) => Promise<Deal>;
@@ -123,6 +122,9 @@ export function DemoProvider({ children }: { children: ReactNode }) {
         setCurrentUser(session.user);
         if (session.user) await refreshDeals();
       })
+      .catch(() => {
+        // Not authenticated — ignore, login page will show
+      })
       .finally(() => {
         if (active) setSessionLoading(false);
       });
@@ -139,12 +141,13 @@ export function DemoProvider({ children }: { children: ReactNode }) {
       sessionLoading,
       loading,
 
-      login: async (team) => {
-        const session = await apiFetch<SessionResponse>("/api/auth/session", {
+      login: async (email, _password) => {
+        const session = await apiFetch<SessionResponse & { token?: string }>("/api/auth/session", {
           method: "POST",
-          body: JSON.stringify({ team }),
+          body: JSON.stringify({ email }),
         });
         if (!session.user) throw new Error("Login did not return a user.");
+        if (session.token) localStorage.setItem("dm_token", session.token);
         setCurrentUser(session.user);
         setDevMode(session.devMode);
         await refreshDeals();
