@@ -43,7 +43,7 @@ export default function ActivePipelinesBusinessPage() {
         <main className="app-main pipeline-main">
           <header className="pipeline-heading">
             <div className="pipeline-heading-copy">
-              <h1>Welcome back, {currentUser?.name}</h1>
+              <h1>Welcome back, {currentUser?.email}</h1>
             </div>
           </header>
           <EmptyPipelineState titleId="business-empty-title" />
@@ -58,7 +58,7 @@ export default function ActivePipelinesBusinessPage() {
       <main className="app-main pipeline-main">
         <header className="pipeline-heading">
           <div className="pipeline-heading-copy">
-            <h1>Welcome back, {currentUser?.name}</h1>
+            <h1>Welcome back, {currentUser?.email}</h1>
             {pending.length > 0 && (
               <p className="review-notice">
                 {pending.length} proposal{pending.length === 1 ? "" : "s"} awaiting review

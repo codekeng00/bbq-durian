@@ -72,7 +72,7 @@ export default function ActivePipelinesSalesPage() {
         <main className="app-main pipeline-main">
           <header className="pipeline-heading">
             <div className="pipeline-heading-copy">
-              <h1>Welcome back, {currentUser?.name}</h1>
+              <h1>Welcome back, {currentUser?.email}</h1>
             </div>
           </header>
           <EmptyPipelineState
@@ -90,7 +90,7 @@ export default function ActivePipelinesSalesPage() {
       <main className="app-main pipeline-main">
         <header className="pipeline-heading">
           <div className="pipeline-heading-copy">
-            <h1>Welcome back, {currentUser?.name}</h1>
+            <h1>Welcome back, {currentUser?.email}</h1>
             {active.length > 0 && (
               <p className="review-notice">
                 {active.length} active opportunit{active.length === 1 ? "y" : "ies"}
